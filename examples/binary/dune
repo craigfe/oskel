@@ -1,0 +1,11 @@
+(rule
+ (targets binary-help.txt.gen)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run binary --help=plain))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff binary-help.txt binary-help.txt.gen)))

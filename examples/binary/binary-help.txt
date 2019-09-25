@@ -1,0 +1,36 @@
+NAME
+       binary - Binary that depends on a tested library
+
+SYNOPSIS
+       binary [OPTION]... 
+
+OPTIONS
+       --color=WHEN (absent=auto)
+           Colorize the output. WHEN must be one of `auto', `always' or
+           `never'.
+
+       --help[=FMT] (default=auto)
+           Show this help in format FMT. The value FMT must be one of `auto',
+           `pager', `groff' or `plain'. With `auto', the format is `pager` or
+           `plain' whenever the TERM env var is `dumb' or undefined.
+
+       -q, --quiet
+           Be quiet. Takes over -v and --verbosity.
+
+       -v, --verbose
+           Increase verbosity. Repeatable, but more than twice does not bring
+           more.
+
+       --verbosity=LEVEL (absent=warning)
+           Be more or less verbose. LEVEL must be one of `quiet', `error',
+           `warning', `info' or `debug'. Takes over -v.
+
+EXIT STATUS
+       binary exits with the following status:
+
+       0   on success.
+
+       124 on command line parsing errors.
+
+       125 on unexpected internal errors (bugs).
+

@@ -1,0 +1,13 @@
+(lang dune 2.0)
+(name library)
+(implicit_transitive_deps false)
+
+(generate_opam_files true)
+(source (github JoeBloggs/library))
+(maintainers "Joe Bloggs <joe@example.com>")
+(authors "Joe Bloggs <joe@example.com>")
+
+(package
+ (name library)
+ (synopsis "Single package in `src`")
+ (depends alcotest fmt logs))

@@ -1,0 +1,3 @@
+(library
+ (name oskel)
+ (libraries unix logs fmt))

@@ -1,0 +1,23 @@
+(rule
+ (alias examples)
+ (deps (universe))
+ (action
+  (chdir
+   %{project_root}/examples
+   (progn
+    (run oskel --synopsis "Single package in `src`" --kind=library library)
+    (run oskel --synopsis "Binary that depends on a tested library"
+      --kind=binary binary)
+    (run oskel --synopsis "Individual executable" --kind=executable
+      executable)))))
+
+(env
+ (_
+  (env-vars
+   (OSKEL_DISABLE_GIT "true")
+   (OSKEL_CURRENT_YEAR "1999")
+   (OSKEL_FULL_NAME "Joe Bloggs")
+   (OSKEL_EMAIL "joe@example.com")
+   (OSKEL_GITHUB_ORG "JoeBloggs"))))
+
+(data_only_dirs *)

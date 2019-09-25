@@ -1,0 +1,8 @@
+(executable
+ (name main)
+ (libraries binary cmdliner fmt fmt.cli fmt.tty logs logs.cli logs.fmt))
+
+(install
+ (section bin)
+ (files
+  (main.exe as binary)))

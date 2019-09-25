@@ -1,0 +1,11 @@
+(rule
+ (targets oskel-help.txt.gen)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run oskel --help=plain))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff oskel-help.txt oskel-help.txt.gen)))

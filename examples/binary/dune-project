@@ -1,0 +1,13 @@
+(lang dune 2.0)
+(name binary)
+(implicit_transitive_deps false)
+
+(generate_opam_files true)
+(source (github JoeBloggs/binary))
+(maintainers "Joe Bloggs <joe@example.com>")
+(authors "Joe Bloggs <joe@example.com>")
+
+(package
+ (name binary)
+ (synopsis "Binary that depends on a tested library")
+ (depends alcotest fmt logs))

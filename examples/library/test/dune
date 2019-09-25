@@ -1,0 +1,3 @@
+(test
+ (name main)
+ (libraries alcotest library logs logs.fmt))

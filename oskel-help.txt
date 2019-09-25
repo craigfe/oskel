@@ -1,0 +1,128 @@
+NAME
+       oskel - Generate skeleton OCaml projects.
+
+SYNOPSIS
+       oskel [OPTION]... NAME
+
+OPTIONS
+       --color=WHEN (absent=auto)
+           Colorize the output. WHEN must be one of `auto', `always' or
+           `never'.
+
+       --current-year=VAL (absent OSKEL_CURRENT_YEAR env)
+           Set the current year. Useful for achieving deterministic output.
+
+       --depends=VAL (absent=fmt,logs or OSKEL_DEPENDS env)
+           Dependencies of the project in a comma-separated list.
+
+       --disable-git (absent OSKEL_DISABLE_GIT env)
+           Don't generate a git repository for the project.
+
+       --dry-run
+           Simulate the command, but don't actually perform any changes.
+
+       --email=VAL (absent OSKEL_EMAIL env)
+           Maintainer's contact email.
+
+       --full-name=VAL (absent OSKEL_FULL_NAME env)
+           Maintainer's full name.
+
+       --github-org=VAL (absent OSKEL_GITHUB_ORG env)
+           GitHub organisation associated with the project.
+
+       --help[=FMT] (default=auto)
+           Show this help in format FMT. The value FMT must be one of `auto',
+           `pager', `groff' or `plain'. With `auto', the format is `pager` or
+           `plain' whenever the TERM env var is `dumb' or undefined.
+
+       --kind=VAL (absent=library or OSKEL_KIND env)
+           Type of project to create. One of one of `library', `binary' or
+           `executable'.
+
+       --license=VAL (absent=mit or OSKEL_LICENSE env)
+           License to add to the project. One of one of `apache2', `bsd2',
+           `bsd3', `isc' or `mit'.
+
+       --ocamlformat-options=VAL (absent OSKEL_OCAMLFORMAT_OPTIONS env)
+           Options to add to the .ocamlformat file, as a comma-separated list
+           of key-value pairs. (e.g.
+           "parse-docstrings=true,break-infix=fit-or-vertical")
+
+       -q, --quiet
+           Be quiet. Takes over -v and --verbosity.
+
+       --synopsis=VAL (required)
+           Synopsis of the project skeleton.
+
+       -v, --verbose
+           Increase verbosity. Repeatable, but more than twice does not bring
+           more.
+
+       --verbosity=LEVEL (absent=warning)
+           Be more or less verbose. LEVEL must be one of `quiet', `error',
+           `warning', `info' or `debug'. Takes over -v.
+
+       --version-dune=VAL (absent=2.0 or OSKEL_VERSION_DUNE env)
+           Version of dune to associate with the project.
+
+       --version-ocaml=VAL (absent=4.09.0 or OSKEL_VERSION_OCAML env)
+           Version of OCaml to associate with the project.
+
+       --version-ocamlformat=VAL (absent=0.12 or OSKEL_VERSION_OCAMLFORMAT
+       env)
+           Version of OCamlformat to associate with the project.
+
+       --version-opam=VAL (absent=2.0 or OSKEL_VERSION_DUNE env)
+           Version of opam to associate with the project.
+
+EXIT STATUS
+       oskel exits with the following status:
+
+       0   on success.
+
+       124 on command line parsing errors.
+
+       125 on unexpected internal errors (bugs).
+
+ENVIRONMENT
+       These environment variables affect the execution of oskel:
+
+       OSKEL_CURRENT_YEAR
+           See option --current-year.
+
+       OSKEL_DEPENDS
+           See option --depends.
+
+       OSKEL_DISABLE_GIT
+           See option --disable-git.
+
+       OSKEL_EMAIL
+           See option --email.
+
+       OSKEL_FULL_NAME
+           See option --full-name.
+
+       OSKEL_GITHUB_ORG
+           See option --github-org.
+
+       OSKEL_KIND
+           See option --kind.
+
+       OSKEL_LICENSE
+           See option --license.
+
+       OSKEL_OCAMLFORMAT_OPTIONS
+           See option --ocamlformat-options.
+
+       OSKEL_VERSION_DUNE
+           See option --version-dune.
+
+       OSKEL_VERSION_DUNE
+           See option --version-opam.
+
+       OSKEL_VERSION_OCAML
+           See option --version-ocaml.
+
+       OSKEL_VERSION_OCAMLFORMAT
+           See option --version-ocamlformat.
+
