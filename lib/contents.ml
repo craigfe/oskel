@@ -116,7 +116,7 @@ let readme config ppf =
 ## Installation
 
 ```
-opam pin add --yes https://github.com/%s/%s
+opam pin add --yes https://github.com/%s/%s.git
 opam install %s
 ```|}
     config.project config.project_synopsis config.github_organisation
