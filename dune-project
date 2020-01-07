@@ -10,6 +10,6 @@
 (package
  (name oskel)
  (synopsis "Skeleton generator for OCaml projects")
- (depends cmdliner (fmt (>= 0.8.7))))
+ (depends cmdliner (fmt (>= 0.8.7)) logs))
 
 
