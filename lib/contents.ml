@@ -286,7 +286,7 @@ OPTIONS
            `warning', `info' or `debug'. Takes over -v.
 
 EXIT STATUS
-       binary exits with the following status:
+       %s exits with the following status:
 
        0   on success.
 
@@ -294,4 +294,4 @@ EXIT STATUS
 
        125 on unexpected internal errors (bugs).
 |}
-    config.project config.project_synopsis config.project
+    config.project config.project_synopsis config.project config.project
