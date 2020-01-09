@@ -133,8 +133,9 @@ let binary (config : Config.t) =
         File ("LICENSE", license config);
         File ("README.md", readme config);
         File ("CHANGES.md", changes config);
-        (* populated by running dune [--auto-promote runtest] *)
         File (config.project ^ "-help.txt", bin_help_txt config);
+        (* Empty structure here only for pretty-printing to the user  *)
+        File (config.project ^ ".opam", fun _ -> ());
       ]
       @ if config.git_repo then [ Folder (".git", []) ] else [] )
 
