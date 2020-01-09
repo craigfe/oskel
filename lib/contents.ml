@@ -128,7 +128,7 @@ opam install %s
 
 let readme_ppx = readme
 
-let changes _config ppf = Fmt.pf ppf "# Unreleased"
+let changes _config ppf = Fmt.pf ppf "# 0.1.0"
 
 let ocamlformat config ppf =
   Fmt.pf ppf "@[<v 0>version = %s%a@]" config.version_ocamlformat
