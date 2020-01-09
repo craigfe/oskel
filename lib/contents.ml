@@ -3,9 +3,9 @@ open Config
 type file_printer = Config.t -> Format.formatter -> unit
 
 module Dune_project = struct
-  let package config ppf =
+  let package c ppf =
     let dependencies =
-      config.dependencies
+      c.dependencies
       |> List.append [ "alcotest" ]
       |> List.sort_uniq String.compare
     in
@@ -22,11 +22,15 @@ module Dune_project = struct
 (package
  (name %s)
  (synopsis "%s")
+ (description "\
+%s
+")
+ (documentation https://%s.github.io/%s/)
  (depends %a))|}
-      config.version_dune config.project config.github_organisation
-      config.project config.maintainer_fullname config.maintainer_email
-      config.maintainer_fullname config.maintainer_email config.project
-      config.project_synopsis
+      c.version_dune c.project c.github_organisation c.project
+      c.maintainer_fullname c.maintainer_email c.maintainer_fullname
+      c.maintainer_email c.project c.project_synopsis c.project_synopsis
+      c.github_organisation c.project
       Fmt.(list ~sep:(const string " ") string)
       dependencies
 
@@ -123,6 +127,8 @@ opam install %s
     config.project config.project
 
 let readme_ppx = readme
+
+let changes _config ppf = Fmt.pf ppf "# Unreleased"
 
 let ocamlformat config ppf =
   Fmt.pf ppf "@[<v 0>version = %s%a@]" config.version_ocamlformat
