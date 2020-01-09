@@ -29,6 +29,8 @@ val readme : file_printer
 
 val readme_ppx : file_printer
 
+val changes : file_printer
+
 val ocamlformat : file_printer
 
 val opam : file_printer
