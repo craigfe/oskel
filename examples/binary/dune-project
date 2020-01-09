@@ -10,4 +10,8 @@
 (package
  (name binary)
  (synopsis "Binary that depends on a tested library")
+ (description "\
+Binary that depends on a tested library
+")
+ (documentation https://JoeBloggs.github.io/binary/)
  (depends alcotest fmt logs))

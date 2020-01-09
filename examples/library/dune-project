@@ -10,4 +10,8 @@
 (package
  (name library)
  (synopsis "Single package in `src`")
+ (description "\
+Single package in `src`
+")
+ (documentation https://JoeBloggs.github.io/library/)
  (depends alcotest fmt logs))
