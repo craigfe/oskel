@@ -20,6 +20,7 @@ depends: [
   "cmdliner"
   "fmt" {>= "0.8.7"}
   "logs"
+  "stdlib-shims"
 ]
 build: [
   ["dune" "subst"] {pinned}
