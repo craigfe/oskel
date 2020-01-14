@@ -59,7 +59,6 @@ the project structure.
 ## Installation
 
 ```
-opam pin add --yes https://github.com/CraigFe/oskel.git
 opam install oskel
 ```
 
