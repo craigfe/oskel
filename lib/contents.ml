@@ -122,9 +122,46 @@ let readme config ppf =
 ```
 opam pin add --yes https://github.com/%s/%s.git
 opam install %s
-```|}
+```
+
+If you want to contribute to the project, please read
+[CONTRIBUTING.md](CONTRIBUTING.md).|}
     config.project config.project_synopsis config.github_organisation
     config.project config.project
+
+let contributing config ppf =
+  Fmt.pf ppf
+    {|## Setting up your working environment
+
+%s requires OCaml %s or higher so you will need a corresponding opam switch
+which you can install by running:
+```
+opam switch create %s ocaml-base-compiler.%s
+```
+|}
+    config.project config.version_ocaml
+    config.version_ocaml config.version_ocaml;
+  Fmt.pf ppf
+    {|
+To clone the project's sources and install both its regular and test
+dependencies run:
+```
+git clone https://github.com:%s/%s.git
+cd %s
+opam install -t --deps-only .
+```
+
+From there you can build all of the project's public libraries and executables
+with:
+```
+dune build @install
+```
+and run the test suite with:
+```
+dune runtest
+```|}
+    config.github_organisation config.project
+    config.project
 
 let readme_ppx = readme
 

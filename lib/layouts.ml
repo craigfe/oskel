@@ -72,6 +72,7 @@ let library (config : Config.t) =
         File ("dune-project", Dune_project.package config);
         File ("LICENSE", license config);
         File ("README.md", readme config);
+        File ("CONTRIBUTING.md", contributing config);
         File ("CHANGES.md", changes config);
         (* Empty structure here only for pretty-printing to the user  *)
         File (config.project ^ ".opam", fun _ -> ());
@@ -132,6 +133,7 @@ let binary (config : Config.t) =
         File ("dune-project", Dune_project.package config);
         File ("LICENSE", license config);
         File ("README.md", readme config);
+        File ("CONTRIBUTING.md", contributing config);
         File ("CHANGES.md", changes config);
         File (config.project ^ "-help.txt", bin_help_txt config);
         (* Empty structure here only for pretty-printing to the user  *)
@@ -186,6 +188,7 @@ let _ppx_deriver config =
         File ("dune-project", Dune.library config);
         File ("LICENSE", license config);
         File ("README.md", readme_ppx config);
+        File ("CONTRIBUTING.md", contributing config);
         File ("CHANGES.md", changes config);
         (* Empty structure here only for pretty-printing to the user  *)
         File (config.project ^ ".opam", fun _ -> ());
