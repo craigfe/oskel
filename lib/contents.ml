@@ -133,14 +133,15 @@ let contributing config ppf =
   Fmt.pf ppf
     {|## Setting up your working environment
 
-%s requires OCaml %s or higher so you will need a corresponding opam switch
-which you can install by running:
+%s requires OCaml %s or higher so you will need a corresponding opam
+switch. OCaml 4.09.0 is a good choice as it makes for a better developper
+experience thanks to improved error messages, amongst other things. You can
+install a 4.09.0 OCaml switch by running:
 ```
-opam switch create %s ocaml-base-compiler.%s
+opam switch create 4.09.0 ocaml-base-compiler.4.09.0
 ```
 |}
-    config.project config.version_ocaml
-    config.version_ocaml config.version_ocaml;
+    config.project config.version_ocaml;
   Fmt.pf ppf
     {|
 To clone the project's sources and install both its regular and test
