@@ -62,6 +62,9 @@ the project structure.
 opam install oskel
 ```
 
+If you want to contribute to the project, please read
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Configuration
 
 `oskel` is very configurable (see [`oskel --help`](./oskel-help.txt) for
