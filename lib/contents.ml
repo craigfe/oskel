@@ -129,7 +129,7 @@ If you want to contribute to the project, please read
     config.project config.project_synopsis config.github_organisation
     config.project config.project
 
-let contributing config ppf =
+let contributing ?promote config ppf =
   Fmt.pf ppf
     {|## Setting up your working environment
 
@@ -162,7 +162,15 @@ and run the test suite with:
 dune runtest
 ```|}
     config.project config.version_ocaml config.github_organisation
-    config.project config.project
+    config.project config.project;
+  match promote with
+  | Some () ->
+      Fmt.pf ppf
+        {|
+
+If the test suite fails, it may propose a diff to fix the issue. You may accept
+the proposed diff with `dune promote`.|}
+  | None -> ()
 
 let readme_ppx = readme
 

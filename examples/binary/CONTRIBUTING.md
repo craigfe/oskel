@@ -28,3 +28,6 @@ and run the test suite with:
 ```
 dune runtest
 ```
+
+If the test suite fails, it may propose a diff to fix the issue. You may accept
+the proposed diff with `dune promote`.

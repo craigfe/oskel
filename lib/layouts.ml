@@ -133,7 +133,7 @@ let binary (config : Config.t) =
         File ("dune-project", Dune_project.package config);
         File ("LICENSE", license config);
         File ("README.md", readme config);
-        File ("CONTRIBUTING.md", contributing config);
+        File ("CONTRIBUTING.md", contributing ~promote:() config);
         File ("CHANGES.md", changes config);
         File (config.project ^ "-help.txt", bin_help_txt config);
         (* Empty structure here only for pretty-printing to the user  *)

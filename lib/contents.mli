@@ -27,7 +27,7 @@ val gitignore : file_printer
 
 val readme : file_printer
 
-val contributing : file_printer
+val contributing : ?promote:unit -> file_printer
 
 val readme_ppx : file_printer
 
