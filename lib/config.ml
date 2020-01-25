@@ -6,6 +6,7 @@ type t = {
   maintainer_fullname : string;
   maintainer_email : string;
   github_organisation : string;
+  initial_version : string;
   license : License.t;
   dependencies : string list;
   version_dune : string;

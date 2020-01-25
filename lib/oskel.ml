@@ -22,10 +22,6 @@ let ask ?default prompt = function
       let pp_default =
         Fmt.(option (string |> using (fun s -> " (" ^ s ^ ")")))
       in
-
-      (* (match default with
-       * | Some s -> Printf.printf "%s" s
-       * | None -> ()); *)
       Fmt.pr "%a %s%a: %!"
         Fmt.(styled `Faint string)
         "question" prompt pp_default default;
@@ -49,9 +45,10 @@ let adjective_animal () =
   Fmt.strf "%s-%s" (random_elt Faker.adjectives) (random_elt Faker.animals)
 
 let run ~project_kind ?name ?project_synopsis ?maintainer_fullname
-    ?maintainer_email ?github_organisation ~license ~dependencies ~version_dune
-    ~version_ocaml ~version_opam ~version_ocamlformat ~ocamlformat_options
-    ~dry_run ~git_repo ?(current_year = get_current_year ()) () =
+    ?maintainer_email ?github_organisation ?initial_version ~license
+    ~dependencies ~version_dune ~version_ocaml ~version_opam
+    ~version_ocamlformat ~ocamlformat_options ~dry_run ~git_repo
+    ?(current_year = get_current_year ()) () =
   Logs.app (fun m -> m "%a" Fmt.(styled `Bold string) "oskel v%%VERSION%%");
   Random.self_init ();
   let name =
@@ -65,6 +62,9 @@ let run ~project_kind ?name ?project_synopsis ?maintainer_fullname
     ask "GitHub name" github_organisation |> assert_ok
   in
   let project_synopsis = ask "synopsis" project_synopsis |> assert_ok in
+  let initial_version =
+    ask ~default:"0.1.0" "version" initial_version |> assert_ok
+  in
   main ~project_kind ~dry_run
     {
       name;
@@ -72,6 +72,7 @@ let run ~project_kind ?name ?project_synopsis ?maintainer_fullname
       maintainer_fullname;
       maintainer_email;
       github_organisation;
+      initial_version;
       license;
       dependencies;
       version_dune;

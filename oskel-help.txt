@@ -37,6 +37,9 @@ OPTIONS
            `pager', `groff' or `plain'. With `auto', the format is `pager` or
            `plain' whenever the TERM env var is `dumb' or undefined.
 
+       --initial-version=VAL (absent OSKEL_INITIAL_VERSION env)
+           Initial version at which to release the project.
+
        --kind=VAL (absent=library or OSKEL_KIND env)
            Type of project to create. One of one of `library', `binary' or
            `executable'.
@@ -109,6 +112,9 @@ ENVIRONMENT
 
        OSKEL_GITHUB_ORG
            See option --github-org.
+
+       OSKEL_INITIAL_VERSION
+           See option --initial-version.
 
        OSKEL_KIND
            See option --kind.

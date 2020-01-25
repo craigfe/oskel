@@ -11,6 +11,7 @@ examples:
 lint:
 	prettier --check $(MD_FILES)
 	dune build @fmt
+	dune-release lint
 
 .PHONY: format
 format:
