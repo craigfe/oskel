@@ -27,8 +27,10 @@ let rec pp_file ~pre ~last_dir ppf =
     | [ last ] -> pf ppf "@,%a%a" pp_children_last last pp_last_dir last_dir
     | _ :: _ :: _ ->
         let last, not_last =
-          files |> List.sort compare_file |> List.rev |> fun x ->
-          (List.hd x, List.rev (List.tl x))
+          files
+          |> List.sort compare_file
+          |> List.rev
+          |> fun x -> (List.hd x, List.rev (List.tl x))
         in
         pf ppf "@,%a@,%a%a"
           (list ~sep:cut pp_children_not_last)
