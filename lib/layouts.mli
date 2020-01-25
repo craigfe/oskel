@@ -12,4 +12,4 @@ val binary : project
 
 val executable : project
 
-val instantiate : Config.t -> project -> (unit, string) result
+val instantiate : Config.t -> project -> (unit, [ `Msg of string ]) result

@@ -1,4 +1,12 @@
-let assert_with_error optname = function
+let opt_of_result = function Ok s -> Some s | Error _ -> None
+
+let git_user_name () = Oskel.Utils.exec "git config user.name" |> opt_of_result
+
+let git_email () = Oskel.Utils.exec "git config user.email" |> opt_of_result
+
+let ( >>? ) x f = match x with Some s -> Some s | None -> f ()
+
+let required_option optname = function
   | Some s -> s
   | None ->
       Fmt.epr "oskel: required option %s is missing\n" optname;
@@ -9,11 +17,13 @@ let run project project_kind project_synopsis maintainer_fullname
     version_ocaml version_opam version_ocamlformat ocamlformat_options dry_run
     git_repo current_year () =
   let maintainer_fullname =
-    assert_with_error "--full-name" maintainer_fullname
+    maintainer_fullname >>? git_user_name |> required_option "--full-name"
   in
-  let maintainer_email = assert_with_error "--email" maintainer_email in
+  let maintainer_email =
+    maintainer_email >>? git_email |> required_option "--email"
+  in
   let github_organisation =
-    assert_with_error "--github-org" github_organisation
+    github_organisation |> required_option "--github-org"
   in
   Oskel.run ~project ~project_kind ~project_synopsis ~maintainer_fullname
     ~maintainer_email ~github_organisation ~license ~dependencies ~version_dune
@@ -39,12 +49,18 @@ let project_synopsis =
   Arg.(required & opt (some string) None & info [ "synopsis" ] ~doc)
 
 let maintainer_fullname =
-  let doc = "Maintainer's full name." in
+  let doc =
+    "Maintainer's full name. If not specified, Oskel will attempt to read this \
+     from `git config user.name`."
+  in
   let env = Arg.env_var "OSKEL_FULL_NAME" in
   Arg.(value & opt (some string) None & info [ "full-name" ] ~doc ~env)
 
 let maintainer_email =
-  let doc = "Maintainer's contact email." in
+  let doc =
+    "Maintainer's contact email. If not specified, Oskel will attempt to read \
+     this from `git config user.email`."
+  in
   let env = Arg.env_var "OSKEL_EMAIL" in
   Arg.(value & opt (some string) None & info [ "email" ] ~doc ~env)
 
