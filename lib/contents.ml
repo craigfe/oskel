@@ -185,7 +185,7 @@ the proposed diff with `dune promote`.|}
 
 let readme_ppx = readme
 
-let changes _config ppf = Fmt.pf ppf "# 0.1.0"
+let changes { initial_version; _ } ppf = Fmt.pf ppf "# %s" initial_version
 
 let ocamlformat config ppf =
   Fmt.pf ppf "@[<v 0>version = %s%a@]" config.version_ocamlformat

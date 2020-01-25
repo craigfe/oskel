@@ -15,6 +15,7 @@
  (_
   (env-vars
    (OSKEL_DISABLE_GIT "true")
+   (OSKEL_INITIAL_VERSION "0.1.0")
    (OSKEL_CURRENT_YEAR "1999")
    (OSKEL_FULL_NAME "Joe Bloggs")
    (OSKEL_EMAIL "joe@example.com")

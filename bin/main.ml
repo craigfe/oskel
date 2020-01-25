@@ -11,15 +11,16 @@ let git_email () =
 let ( >>? ) x f = match x with Some s -> Some s | None -> f ()
 
 let run name project_kind project_synopsis maintainer_fullname maintainer_email
-    github_organisation license dependencies version_dune version_ocaml
-    version_opam version_ocamlformat ocamlformat_options dry_run git_repo
-    current_year () =
+    github_organisation initial_version license dependencies version_dune
+    version_ocaml version_opam version_ocamlformat ocamlformat_options dry_run
+    git_repo current_year () =
   let maintainer_fullname = maintainer_fullname >>? git_user_name in
   let maintainer_email = maintainer_email >>? git_email in
   Oskel.run ?name ~project_kind ?project_synopsis ?maintainer_fullname
-    ?maintainer_email ?github_organisation ~license ~dependencies ~version_dune
-    ~version_ocaml ~version_opam ~version_ocamlformat ~ocamlformat_options
-    ~dry_run ~git_repo ?current_year ()
+    ?maintainer_email ?github_organisation ?initial_version ~license
+    ~dependencies ~version_dune ~version_ocaml ~version_opam
+    ~version_ocamlformat ~ocamlformat_options ~dry_run ~git_repo ?current_year
+    ()
 
 open Cmdliner
 
@@ -65,6 +66,11 @@ let github_organisation =
   let doc = "GitHub organisation associated with the project." in
   let env = Arg.env_var "GITHUB_ORG" in
   Arg.(value & opt (some string) None & info [ "github-org" ] ~doc ~env)
+
+let initial_version =
+  let doc = "Initial version at which to release the project." in
+  let env = Arg.env_var "INITIAL_VERSION" in
+  Arg.(value & opt (some string) None & info [ "initial-version" ] ~doc ~env)
 
 let license =
   let licenses = Oskel.License.all in
@@ -152,6 +158,7 @@ let term =
       $ maintainer_fullname
       $ maintainer_email
       $ github_organisation
+      $ initial_version
       $ license
       $ dependencies
       $ version_dune
