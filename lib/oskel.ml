@@ -43,6 +43,11 @@ let assert_ok = function
       exit 1
 
 let ( >>= ) x f = match x with Ok x -> f x | e -> e
+
+let adjective_animal () =
+  let random_elt l = List.length l |> Random.int |> List.nth l in
+  Fmt.strf "%s-%s" (random_elt Faker.adjectives) (random_elt Faker.animals)
+
 let run ~project_kind ?name ?project_synopsis ?maintainer_fullname
     ?maintainer_email ?github_organisation ~license ~dependencies ~version_dune
     ~version_ocaml ~version_opam ~version_ocamlformat ~ocamlformat_options
