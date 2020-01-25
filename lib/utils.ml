@@ -1,3 +1,13 @@
+let exec cmd =
+  let in_channel = Unix.open_process_in cmd in
+  let line = input_line in_channel in
+  match Unix.close_process_in in_channel with
+  | WEXITED 0 -> Ok line
+  | WEXITED n ->
+      Error (`Msg (Fmt.strf "Command \"%s\" failed with return code %d" cmd n))
+  | WSIGNALED _ | WSTOPPED _ ->
+      Error (`Msg (Fmt.strf "Command \"%s\" was interrupted" cmd))
+
 let sequence_commands cmds =
   List.fold_left
     (fun ret cmd ->
@@ -7,9 +17,11 @@ let sequence_commands cmds =
           match Unix.system cmd with
           | WEXITED 0 -> Ok ()
           | WEXITED n ->
-              Error (Fmt.strf "Command \"%s\" failed with return code %d" cmd n)
+              Error
+                (`Msg
+                  (Fmt.strf "Command \"%s\" failed with return code %d" cmd n))
           | WSIGNALED _ | WSTOPPED _ ->
-              Error (Fmt.strf "Command \"%s\" was interrupted" cmd) ))
+              Error (`Msg (Fmt.strf "Command \"%s\" was interrupted" cmd)) ))
     (Ok ()) cmds
 
 let print_to_file path printer =

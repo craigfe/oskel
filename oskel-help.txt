@@ -22,10 +22,12 @@ OPTIONS
            Simulate the command, but don't actually perform any changes.
 
        --email=VAL (absent OSKEL_EMAIL env)
-           Maintainer's contact email.
+           Maintainer's contact email. If not specified, Oskel will attempt
+           to read this from `git config user.email`.
 
        --full-name=VAL (absent OSKEL_FULL_NAME env)
-           Maintainer's full name.
+           Maintainer's full name. If not specified, Oskel will attempt to
+           read this from `git config user.name`.
 
        --github-org=VAL (absent OSKEL_GITHUB_ORG env)
            GitHub organisation associated with the project.

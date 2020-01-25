@@ -1,4 +1,5 @@
 module License = License
+module Utils = Utils
 
 let main ~dry_run ~project_kind config =
   let layout =
@@ -13,7 +14,7 @@ let main ~dry_run ~project_kind config =
   if not dry_run then
     match Layouts.instantiate config layout with
     | Ok () -> ()
-    | Error msg ->
+    | Error (`Msg msg) ->
         Fmt.epr "%s" msg;
         exit 1
 
