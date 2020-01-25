@@ -13,14 +13,14 @@ let ( >>? ) x f = match x with Some s -> Some s | None -> f ()
 let run name project_kind project_synopsis maintainer_fullname maintainer_email
     github_organisation initial_version license dependencies version_dune
     version_ocaml version_opam version_ocamlformat ocamlformat_options dry_run
-    git_repo current_year () =
+    non_interactive git_repo current_year () =
   let maintainer_fullname = maintainer_fullname >>? git_user_name in
   let maintainer_email = maintainer_email >>? git_email in
   Oskel.run ?name ~project_kind ?project_synopsis ?maintainer_fullname
     ?maintainer_email ?github_organisation ?initial_version ~license
     ~dependencies ~version_dune ~version_ocaml ~version_opam
-    ~version_ocamlformat ~ocamlformat_options ~dry_run ~git_repo ?current_year
-    ()
+    ~version_ocamlformat ~ocamlformat_options ~dry_run ~non_interactive
+    ~git_repo ?current_year ()
 
 open Cmdliner
 
@@ -126,6 +126,10 @@ let dry_run =
   let doc = "Simulate the command, but don't actually perform any changes." in
   Arg.(value & flag & info [ "dry-run" ] ~doc)
 
+let non_interactive =
+  let doc = "Do not show interactive prompts." in
+  Arg.(value & flag & info [ "non-interactive" ] ~doc)
+
 let git_repo =
   let doc = "Don't generate a git repository for the project." in
   let env = Arg.env_var "DISABLE_GIT" in
@@ -167,6 +171,7 @@ let term =
       $ version_ocamlformat
       $ ocamlformat_options
       $ dry_run
+      $ non_interactive
       $ git_repo
       $ current_year
       $ setup_log,
