@@ -2,12 +2,13 @@ module License = License
 module Utils = Utils
 
 val run :
-  project:string ->
   project_kind:[ `Library | `Binary | `Executable ] ->
-  project_synopsis:string ->
-  maintainer_fullname:string ->
-  maintainer_email:string ->
-  github_organisation:string ->
+  (* These are asked for from Stdlib if not supplied *)
+  ?name:string ->
+  ?project_synopsis:string ->
+  ?maintainer_fullname:string ->
+  ?maintainer_email:string ->
+  ?github_organisation:string ->
   license:License.t ->
   dependencies:string list ->
   version_dune:string ->

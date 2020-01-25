@@ -27,8 +27,10 @@ let rec pp_file ~pre ~last_dir ppf =
     | [ last ] -> pf ppf "@,%a%a" pp_children_last last pp_last_dir last_dir
     | _ :: _ :: _ ->
         let last, not_last =
-          files |> List.sort compare_file |> List.rev |> fun x ->
-          (List.hd x, List.rev (List.tl x))
+          files
+          |> List.sort compare_file
+          |> List.rev
+          |> fun x -> (List.hd x, List.rev (List.tl x))
         in
         pf ppf "@,%a@,%a%a"
           (list ~sep:cut pp_children_not_last)
@@ -50,15 +52,16 @@ let license (config : Config.t) =
 
 let library (config : Config.t) =
   let open Contents in
+  let src_file = Utils.file_of_project config.name in
   Folder
-    ( config.project,
+    ( config.name,
       [
         Folder
           ( "src",
             [
               File ("dune", Dune.library config);
-              File (config.project ^ ".ml", hello_world_lib_ml config);
-              File (config.project ^ ".mli", hello_world_lib_mli config);
+              File (src_file ^ ".ml", hello_world_lib_ml config);
+              File (src_file ^ ".mli", hello_world_lib_mli config);
             ] );
         Folder
           ( "test",
@@ -75,7 +78,7 @@ let library (config : Config.t) =
         File ("CONTRIBUTING.md", contributing config);
         File ("CHANGES.md", changes config);
         (* Empty structure here only for pretty-printing to the user  *)
-        File (config.project ^ ".opam", fun _ -> ());
+        File (config.name ^ ".opam", fun _ -> ());
       ]
       @ if config.git_repo then [ Folder (".git", []) ] else [] )
 
@@ -84,10 +87,11 @@ let library = { layout = library; post_init = [] }
 let binary (config : Config.t) =
   let open Contents in
   let exe_name = "main" in
+  let lib_file = Utils.file_of_project config.name in
   let bin_dune ppf =
     let libraries =
       [
-        config.project;
+        config.name;
         "cmdliner";
         "fmt";
         "fmt.cli";
@@ -100,10 +104,10 @@ let binary (config : Config.t) =
     in
     Dune.executable ~name:exe_name ~libraries ppf;
     Fmt.pf ppf "\n";
-    Dune.install ~exe_name ~bin_name:config.project ppf
+    Dune.install ~exe_name ~bin_name:config.name ppf
   in
   Folder
-    ( config.project,
+    ( config.name,
       [
         Folder
           ( "bin",
@@ -116,8 +120,8 @@ let binary (config : Config.t) =
           ( "lib",
             [
               File ("dune", Dune.library config);
-              File (config.project ^ ".ml", hello_world_lib_ml config);
-              File (config.project ^ ".mli", hello_world_lib_mli config);
+              File (lib_file ^ ".ml", hello_world_lib_ml config);
+              File (lib_file ^ ".mli", hello_world_lib_mli config);
             ] );
         Folder
           ( "test",
@@ -135,40 +139,42 @@ let binary (config : Config.t) =
         File ("README.md", readme config);
         File ("CONTRIBUTING.md", contributing ~promote:() config);
         File ("CHANGES.md", changes config);
-        File (config.project ^ "-help.txt", bin_help_txt config);
+        File (config.name ^ "-help.txt", bin_help_txt config);
         (* Empty structure here only for pretty-printing to the user  *)
-        File (config.project ^ ".opam", fun _ -> ());
+        File (config.name ^ ".opam", fun _ -> ());
       ]
       @ if config.git_repo then [ Folder (".git", []) ] else [] )
 
 let binary = { layout = binary; post_init = [] }
 
-let executable config =
-  let name = config.Config.project in
+let executable (config : Config.t) =
+  let name = config.name in
+  let toplevel_file = Utils.file_of_project name in
   let libraries = config.dependencies in
   let open Contents in
   Folder
-    ( config.project,
+    ( config.name,
       [
         File ("dune-project", Dune_project.minimal config);
         File ("dune", Dune.executable ~name ~libraries);
-        File (name ^ ".ml", hello_world_bin config);
+        File (toplevel_file ^ ".ml", hello_world_bin config);
       ] )
 
 let executable = { layout = executable; post_init = [] }
 
 (* Work in progress *)
-let _ppx_deriver config =
+let _ppx_deriver (config : Config.t) =
   let open Contents in
+  let toplevel_file = Utils.file_of_project config.name in
   Folder
-    ( config.Config.project,
+    ( config.name,
       [
         Folder
           ( "deriver",
             [
               File ("dune", Dune.ppx_deriver config);
-              File (config.project ^ ".ml", src_ppx_deriver_ml config);
-              File (config.project ^ ".mli", src_ppx_deriver_mli config);
+              File (toplevel_file ^ ".ml", src_ppx_deriver_ml config);
+              File (toplevel_file ^ ".mli", src_ppx_deriver_mli config);
             ] );
         Folder ("lib", [ File ("dune", Dune.ppx_deriver_lib config) ]);
         Folder
@@ -191,13 +197,18 @@ let _ppx_deriver config =
         File ("CONTRIBUTING.md", contributing config);
         File ("CHANGES.md", changes config);
         (* Empty structure here only for pretty-printing to the user  *)
-        File (config.project ^ ".opam", fun _ -> ());
+        File (config.name ^ ".opam", fun _ -> ());
       ]
       @ if config.git_repo then [ Folder (".git", []) ] else [] )
 
+let project_of_kind = function
+  | `Library -> library
+  | `Binary -> binary
+  | `Executable -> executable
+
 let post_initialise config after =
   let open Config in
-  Sys.chdir config.project;
+  Sys.chdir config.name;
   Utils.sequence_commands
     ( ( if config.git_repo then
         [
@@ -206,7 +217,7 @@ let post_initialise config after =
           "git add .";
           "git commit --quiet -m \"Initial commit\"";
           Fmt.strf "git remote add origin https://github.com/%s/%s.git"
-            config.github_organisation config.project;
+            config.github_organisation config.name;
         ]
       else [] )
     @ after )

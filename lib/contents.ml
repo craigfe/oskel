@@ -9,17 +9,23 @@ module Dune_project = struct
       |> List.append [ "alcotest" ]
       |> List.sort_uniq String.compare
     in
-    Fmt.pf ppf
-      {|(lang dune %s)
+    Fmt.pf ppf {|(lang dune %s)
 (name %s)
 (implicit_transitive_deps false)
 
-(generate_opam_files true)
+|}
+      c.version_dune c.name;
+    Fmt.pf ppf
+      {|(generate_opam_files true)
 (source (github %s/%s))
 (maintainers "%s <%s>")
 (authors "%s <%s>")
 
-(package
+|}
+      c.github_organisation c.name c.maintainer_fullname c.maintainer_email
+      c.maintainer_fullname c.maintainer_email;
+    Fmt.pf ppf
+      {|(package
  (name %s)
  (synopsis "%s")
  (description "\
@@ -27,10 +33,7 @@ module Dune_project = struct
 ")
  (documentation https://%s.github.io/%s/)
  (depends %a))|}
-      c.version_dune c.project c.github_organisation c.project
-      c.maintainer_fullname c.maintainer_email c.maintainer_fullname
-      c.maintainer_email c.project c.project_synopsis c.project_synopsis
-      c.github_organisation c.project
+      c.name c.project_synopsis c.project_synopsis c.github_organisation c.name
       Fmt.(list ~sep:(const string " ") string)
       dependencies
 
@@ -38,10 +41,17 @@ module Dune_project = struct
 end
 
 module Dune = struct
-  let library config ppf =
+  let pp_public_name ppf n =
+    let file = Utils.file_of_project n in
+    if not (String.equal n file) then Fmt.pf ppf "\n (public_name %s)" n
+
+  let library { name; _ } ppf =
+    (* Check if we need a public_name field *)
+    let file = Utils.file_of_project name in
     Fmt.pf ppf {|(library
- (name %s)
- (libraries logs))|} config.project
+ (name %s)%a
+ (libraries logs))|} file pp_public_name
+      name
 
   let pp_libraries ppf deps =
     match deps with
@@ -51,7 +61,8 @@ module Dune = struct
         pf ppf "@,(libraries %a)" (list ~sep:(const string " ") string) deps
 
   let executable ~name ?(libraries = []) ppf =
-    Fmt.pf ppf "@[<v 1>(executable@,(name %s)%a)@]" name pp_libraries libraries
+    let file = Utils.file_of_project name in
+    Fmt.pf ppf "@[<v 1>(executable@,(name %s)%a)@]" file pp_libraries libraries
 
   let install ~exe_name ~bin_name ppf =
     Fmt.pf ppf
@@ -60,22 +71,22 @@ module Dune = struct
 
   let test config ppf =
     let dependencies =
-      [ config.project; "alcotest"; "logs"; "logs.fmt" ]
+      [ config.name; "alcotest"; "logs"; "logs.fmt" ]
       |> List.sort String.compare
     in
     Fmt.pf ppf "@[<v 1>(test@,(name main)%a)@]" pp_libraries dependencies
 
-  let ppx_deriver config ppf =
+  let ppx_deriver { name = n; _ } ppf =
     Fmt.pf ppf
       {|(library
  (public_name %s)
  (kind ppx_deriver)
  (libraries %s_lib ppxlib))|}
-      config.project config.project
+      n n
 
   let ppx_deriver_lib _ _ppf = ()
 
-  let generate_help config ppf =
+  let generate_help { name = n; _ } ppf =
     Fmt.pf ppf
       {|(rule
  (targets %s-help.txt.gen)
@@ -88,7 +99,7 @@ module Dune = struct
  (alias runtest)
  (action
   (diff %s-help.txt %s-help.txt.gen)))|}
-      config.project config.project config.project config.project
+      n n n n
 end
 
 let hello_world_bin _config ppf =
@@ -126,8 +137,8 @@ opam install %s
 
 If you want to contribute to the project, please read
 [CONTRIBUTING.md](CONTRIBUTING.md).|}
-    config.project config.project_synopsis config.github_organisation
-    config.project config.project
+    config.name config.project_synopsis config.github_organisation config.name
+    config.name
 
 let contributing ?promote config ppf =
   Fmt.pf ppf
@@ -161,8 +172,8 @@ and run the test suite with:
 ```
 dune runtest
 ```|}
-    config.project config.version_ocaml config.github_organisation
-    config.project config.project;
+    config.name config.version_ocaml config.github_organisation config.name
+    config.name;
   match promote with
   | Some () ->
       Fmt.pf ppf
@@ -183,13 +194,12 @@ let ocamlformat config ppf =
 
 let opam config ppf =
   let pp_homepage ppf config =
-    Fmt.pf ppf "https://github.com/%s/%s" config.github_organisation
-      config.project
+    Fmt.pf ppf "https://github.com/%s/%s" config.github_organisation config.name
   in
   let pp_bugreports ppf config = Fmt.pf ppf "%a/issues" pp_homepage config in
   let pp_devrepo ppf config =
     Fmt.pf ppf "git+https://github.com/%s/%s.git" config.github_organisation
-      config.project
+      config.name
   in
   Fmt.pf ppf
     {|opam-version: "%s"
@@ -234,8 +244,8 @@ let () =
   Logs.set_level (Some Logs.Debug);
   Logs.set_reporter (Logs_fmt.reporter ());
   Alcotest.run "%s" [ ("suite", suite) ]|}
-    (String.capitalize_ascii config.project)
-    config.project
+    (Utils.findlib_of_project config.name)
+    config.name
 
 let empty_mli _config ppf = Fmt.pf ppf "(* intentionally empty *)"
 
@@ -268,11 +278,11 @@ let sig_typ_decl_generator =
 let %s =
   Deriving.add ~str_type_decl:str_type_decl_generator
     ~sig_type_decl:sig_typ_decl_generator ppx_name|}
-    config.project config.project config.project
+    config.name config.name config.name
 
 let src_ppx_deriver_mli config ppf =
   Fmt.pf ppf {|val %s : Ppxlib.Deriving.t
-|} config.project
+|} config.name
 
 let dune_gen_dune_rules _ _ppf = ()
 
@@ -299,8 +309,8 @@ let term =
   Term.(const main $ setup_log, info "%s" ~doc ~exits ~man)
 
 let () = Term.exit (Term.eval term)|}
-    (String.capitalize_ascii config.project)
-    config.project_synopsis config.project
+    (Utils.findlib_of_project config.name)
+    config.project_synopsis config.name
 
 let bin_help_txt config ppf =
   Fmt.pf ppf
@@ -340,4 +350,4 @@ EXIT STATUS
 
        125 on unexpected internal errors (bugs).
 |}
-    config.project config.project_synopsis config.project config.project
+    config.name config.project_synopsis config.name config.name

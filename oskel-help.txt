@@ -2,7 +2,7 @@ NAME
        oskel - Generate skeleton OCaml projects.
 
 SYNOPSIS
-       oskel [OPTION]... NAME
+       oskel [OPTION]... [NAME]
 
 OPTIONS
        --color=WHEN (absent=auto)
@@ -53,7 +53,7 @@ OPTIONS
        -q, --quiet
            Be quiet. Takes over -v and --verbosity.
 
-       --synopsis=VAL (required)
+       --synopsis=VAL
            Synopsis of the project skeleton.
 
        -v, --verbose
@@ -63,6 +63,9 @@ OPTIONS
        --verbosity=LEVEL (absent=warning)
            Be more or less verbose. LEVEL must be one of `quiet', `error',
            `warning', `info' or `debug'. Takes over -v.
+
+       --version
+           Show version information.
 
        --version-dune=VAL (absent=2.0 or OSKEL_VERSION_DUNE env)
            Version of dune to associate with the project.
