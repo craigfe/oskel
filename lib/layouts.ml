@@ -197,6 +197,10 @@ let _ppx_deriver config =
       ]
       @ if config.git_repo then [ Folder (".git", []) ] else [] )
 
+let project_of_kind = function
+  | `Library -> library
+  | `Binary -> binary
+  | `Executable -> executable
 let post_initialise config after =
   let open Config in
   Sys.chdir config.project;

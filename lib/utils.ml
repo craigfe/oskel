@@ -1,6 +1,6 @@
 let exec cmd =
   let in_channel = Unix.open_process_in cmd in
-  let line = input_line in_channel in
+  let line = try input_line in_channel with End_of_file -> "" in
   match Unix.close_process_in in_channel with
   | WEXITED 0 -> Ok line
   | WEXITED n ->

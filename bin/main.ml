@@ -1,32 +1,23 @@
-let opt_of_result = function Ok s -> Some s | Error _ -> None
+let git_user_name () =
+  match Oskel.Utils.exec "git config user.name" with
+  | Ok name -> if String.(equal (trim name) "") then None else Some name
+  | Error _ -> None
 
-let git_user_name () = Oskel.Utils.exec "git config user.name" |> opt_of_result
-
-let git_email () = Oskel.Utils.exec "git config user.email" |> opt_of_result
+let git_email () =
+  match Oskel.Utils.exec "git config user.email" with
+  | Ok email -> if String.(equal (trim email) "") then None else Some email
+  | Error _ -> None
 
 let ( >>? ) x f = match x with Some s -> Some s | None -> f ()
 
-let required_option optname = function
-  | Some s -> s
-  | None ->
-      Fmt.epr "oskel: required option %s is missing\n" optname;
-      exit Cmdliner.Term.exit_status_cli_error
-
-let run project project_kind project_synopsis maintainer_fullname
-    maintainer_email github_organisation license dependencies version_dune
-    version_ocaml version_opam version_ocamlformat ocamlformat_options dry_run
-    git_repo current_year () =
-  let maintainer_fullname =
-    maintainer_fullname >>? git_user_name |> required_option "--full-name"
-  in
-  let maintainer_email =
-    maintainer_email >>? git_email |> required_option "--email"
-  in
-  let github_organisation =
-    github_organisation |> required_option "--github-org"
-  in
-  Oskel.run ~project ~project_kind ~project_synopsis ~maintainer_fullname
-    ~maintainer_email ~github_organisation ~license ~dependencies ~version_dune
+let run name project_kind project_synopsis maintainer_fullname maintainer_email
+    github_organisation license dependencies version_dune version_ocaml
+    version_opam version_ocamlformat ocamlformat_options dry_run git_repo
+    current_year () =
+  let maintainer_fullname = maintainer_fullname >>? git_user_name in
+  let maintainer_email = maintainer_email >>? git_email in
+  Oskel.run ?name ~project_kind ?project_synopsis ?maintainer_fullname
+    ?maintainer_email ?github_organisation ~license ~dependencies ~version_dune
     ~version_ocaml ~version_opam ~version_ocamlformat ~ocamlformat_options
     ~dry_run ~git_repo ?current_year ()
 
@@ -38,7 +29,7 @@ module Arg = struct
   let env_var s = env_var ("OSKEL_" ^ s)
 end
 
-let project = Arg.(required & pos 0 (some string) None & info ~docv:"NAME" [])
+let project_name = Arg.(value & pos 0 (some string) None & info ~docv:"NAME" [])
 
 let project_kind =
   let kinds =
@@ -52,7 +43,7 @@ let project_kind =
 
 let project_synopsis =
   let doc = "Synopsis of the project skeleton." in
-  Arg.(required & opt (some string) None & info [ "synopsis" ] ~doc)
+  Arg.(value & opt (some string) None & info [ "synopsis" ] ~doc)
 
 let maintainer_fullname =
   let doc =
@@ -155,7 +146,7 @@ let term =
   let man = [] in
   Term.
     ( const run
-      $ project
+      $ project_name
       $ project_kind
       $ project_synopsis
       $ maintainer_fullname
