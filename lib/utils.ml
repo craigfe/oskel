@@ -1,3 +1,5 @@
+let ( >> ) f g x = g (f x)
+
 let exec cmd =
   let in_channel = Unix.open_process_in cmd in
   let line = try input_line in_channel with End_of_file -> "" in
@@ -38,3 +40,7 @@ let rec mkdir_p path =
       let parent = Filename.dirname path in
       mkdir_p parent;
       Unix.mkdir path 0o777
+
+let file_of_project = String.map (function '-' -> '_' | c -> c)
+
+let findlib_of_project = file_of_project >> String.capitalize_ascii

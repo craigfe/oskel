@@ -1,7 +1,7 @@
 let pp_license ppf _ = Fmt.pf ppf "MIT"
 
 type t = {
-  project : string;
+  name : string;
   project_synopsis : string;
   maintainer_fullname : string;
   maintainer_email : string;
