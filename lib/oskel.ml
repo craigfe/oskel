@@ -2,6 +2,7 @@ module License = License
 module Utils = Utils
 
 let main ~dry_run ~project_kind config =
+  Logs.app (fun m -> m "%a" Fmt.(styled `Bold string) "oskel v%%VERSION%%");
   let layout =
     match project_kind with
     | `Library -> Layouts.library

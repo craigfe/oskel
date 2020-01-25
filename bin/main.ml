@@ -172,6 +172,6 @@ let term =
       $ git_repo
       $ current_year
       $ setup_log,
-      info "oskel" ~doc ~exits ~man )
+      info "oskel" ~version:"%%VERSION%%" ~doc ~exits ~man )
 
 let () = Term.exit (Term.eval term)
