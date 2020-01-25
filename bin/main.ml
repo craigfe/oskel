@@ -32,6 +32,12 @@ let run project project_kind project_synopsis maintainer_fullname
 
 open Cmdliner
 
+module Arg = struct
+  include Arg
+
+  let env_var s = env_var ("OSKEL_" ^ s)
+end
+
 let project = Arg.(required & pos 0 (some string) None & info ~docv:"NAME" [])
 
 let project_kind =
@@ -41,7 +47,7 @@ let project_kind =
   let doc =
     Fmt.str "Type of project to create. One of %s." (Arg.doc_alts_enum kinds)
   in
-  let env = Arg.env_var "OSKEL_KIND" in
+  let env = Arg.env_var "KIND" in
   Arg.(value & opt (enum kinds) `Library & info [ "kind" ] ~doc ~env)
 
 let project_synopsis =
@@ -53,7 +59,7 @@ let maintainer_fullname =
     "Maintainer's full name. If not specified, Oskel will attempt to read this \
      from `git config user.name`."
   in
-  let env = Arg.env_var "OSKEL_FULL_NAME" in
+  let env = Arg.env_var "FULL_NAME" in
   Arg.(value & opt (some string) None & info [ "full-name" ] ~doc ~env)
 
 let maintainer_email =
@@ -61,12 +67,12 @@ let maintainer_email =
     "Maintainer's contact email. If not specified, Oskel will attempt to read \
      this from `git config user.email`."
   in
-  let env = Arg.env_var "OSKEL_EMAIL" in
+  let env = Arg.env_var "EMAIL" in
   Arg.(value & opt (some string) None & info [ "email" ] ~doc ~env)
 
 let github_organisation =
   let doc = "GitHub organisation associated with the project." in
-  let env = Arg.env_var "OSKEL_GITHUB_ORG" in
+  let env = Arg.env_var "GITHUB_ORG" in
   Arg.(value & opt (some string) None & info [ "github-org" ] ~doc ~env)
 
 let license =
@@ -75,13 +81,13 @@ let license =
     Fmt.str "License to add to the project. One of %s."
       (Arg.doc_alts_enum licenses)
   in
-  let env = Arg.env_var "OSKEL_LICENSE" in
+  let env = Arg.env_var "LICENSE" in
   Arg.(
     value & opt (enum licenses) Oskel.License.Mit & info [ "license" ] ~doc ~env)
 
 let dependencies =
   let doc = "Dependencies of the project in a comma-separated list." in
-  let env = Arg.env_var "OSKEL_DEPENDS" in
+  let env = Arg.env_var "DEPENDS" in
   Arg.(
     value
     & opt (list ~sep:',' string) [ "fmt"; "logs" ]
@@ -89,22 +95,22 @@ let dependencies =
 
 let version_dune =
   let doc = "Version of dune to associate with the project." in
-  let env = Arg.env_var "OSKEL_VERSION_DUNE" in
+  let env = Arg.env_var "VERSION_DUNE" in
   Arg.(value & opt string "2.0" & info [ "version-dune" ] ~doc ~env)
 
 let version_ocaml =
   let doc = "Version of OCaml to associate with the project." in
-  let env = Arg.env_var "OSKEL_VERSION_OCAML" in
+  let env = Arg.env_var "VERSION_OCAML" in
   Arg.(value & opt string "4.09.0" & info [ "version-ocaml" ] ~doc ~env)
 
 let version_opam =
   let doc = "Version of opam to associate with the project." in
-  let env = Arg.env_var "OSKEL_VERSION_DUNE" in
+  let env = Arg.env_var "VERSION_DUNE" in
   Arg.(value & opt string "2.0" & info [ "version-opam" ] ~doc ~env)
 
 let version_ocamlformat =
   let doc = "Version of OCamlformat to associate with the project." in
-  let env = Arg.env_var "OSKEL_VERSION_OCAMLFORMAT" in
+  let env = Arg.env_var "VERSION_OCAMLFORMAT" in
   Arg.(value & opt string "0.12" & info [ "version-ocamlformat" ] ~doc ~env)
 
 let ocamlformat_options =
@@ -113,7 +119,7 @@ let ocamlformat_options =
      key-value pairs. (e.g. \
      \"parse-docstrings=true,break-infix=fit-or-vertical\")"
   in
-  let env = Arg.env_var "OSKEL_OCAMLFORMAT_OPTIONS" in
+  let env = Arg.env_var "OCAMLFORMAT_OPTIONS" in
   Arg.(
     value
     & opt (list ~sep:',' (pair ~sep:'=' string string)) []
@@ -125,14 +131,14 @@ let dry_run =
 
 let git_repo =
   let doc = "Don't generate a git repository for the project." in
-  let env = Arg.env_var "OSKEL_DISABLE_GIT" in
+  let env = Arg.env_var "DISABLE_GIT" in
   Term.(pure not $ Arg.(value & flag & info [ "disable-git" ] ~doc ~env))
 
 let current_year =
   let doc =
     "Set the current year. Useful for achieving deterministic output."
   in
-  let env = Arg.env_var "OSKEL_CURRENT_YEAR" in
+  let env = Arg.env_var "CURRENT_YEAR" in
   Arg.(value & opt (some int) None & info [ "current-year" ] ~env ~doc)
 
 let setup_log =
