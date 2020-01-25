@@ -18,6 +18,7 @@ val run :
   version_ocamlformat:string ->
   ocamlformat_options:(string * string) list ->
   dry_run:bool ->
+  non_interactive:bool ->
   git_repo:bool ->
   ?current_year:int ->
   unit ->

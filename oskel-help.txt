@@ -48,6 +48,9 @@ OPTIONS
            License to add to the project. One of one of `apache2', `bsd2',
            `bsd3', `isc' or `mit'.
 
+       --non-interactive
+           Do not show interactive prompts.
+
        --ocamlformat-options=VAL (absent OSKEL_OCAMLFORMAT_OPTIONS env)
            Options to add to the .ocamlformat file, as a comma-separated list
            of key-value pairs. (e.g.

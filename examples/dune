@@ -5,11 +5,12 @@
   (chdir
    %{project_root}/examples
    (progn
-    (run oskel --synopsis "Single package in `src`" --kind=library library)
-    (run oskel --synopsis "Binary that depends on a tested library"
-      --kind=binary binary)
-    (run oskel --synopsis "Individual executable" --kind=executable
-      executable)))))
+    (run oskel --non-interactive --synopsis "Single package in `src`"
+      --kind=library library)
+    (run oskel --non-interactive --synopsis
+      "Binary that depends on a tested library" --kind=binary binary)
+    (run oskel --non-interactive --synopsis "Individual executable"
+      --kind=executable executable)))))
 
 (env
  (_
