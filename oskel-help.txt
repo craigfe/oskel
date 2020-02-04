@@ -79,7 +79,7 @@ OPTIONS
        --version-ocaml=VAL (absent=4.09.0 or OSKEL_VERSION_OCAML env)
            Version of OCaml to associate with the project.
 
-       --version-ocamlformat=VAL (absent=0.12 or OSKEL_VERSION_OCAMLFORMAT
+       --version-ocamlformat=VAL (absent=0.13.0 or OSKEL_VERSION_OCAMLFORMAT
        env)
            Version of OCamlformat to associate with the project.
 
