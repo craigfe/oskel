@@ -1,9 +1,7 @@
 (rule
- (targets oskel-help.txt.gen)
- (action
   (with-stdout-to
-   %{targets}
-   (run oskel --help=plain))))
+   oskel-help.txt.gen
+   (run oskel --help=plain)))
 
 (rule
  (alias runtest)
