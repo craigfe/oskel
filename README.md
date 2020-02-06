@@ -1,29 +1,6 @@
 # :skull: oskel: skeleton generator for OCaml projects
 
-```
-> oskel --synopsis "My very own OCaml skeleton" my_project
-
-Creating new project:
-
-my_project
-|-- .git
-|-- src
-|   |-- dune
-|   |-- my_project.ml
-|   `-- my_project.mli
-|
-|-- test
-|   |-- dune
-|   |-- main.ml
-|   `-- main.mli
-|
-|-- .gitignore
-|-- .ocamlformat
-|-- LICENSE
-|-- README.md
-|-- dune-project
-`-- my_project.opam
-```
+[![asciicast](./.assets/asciicast.gif)](https://asciinema.org/a/298707)
 
 The standard project type is initialised with:
 
