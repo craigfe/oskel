@@ -1,7 +1,7 @@
 (rule
-  (with-stdout-to
-   oskel-help.txt.gen
-   (run oskel --help=plain)))
+ (with-stdout-to
+  oskel-help.txt.gen
+  (run oskel --help=plain)))
 
 (rule
  (alias runtest)
