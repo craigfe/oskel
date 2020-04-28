@@ -3,3 +3,7 @@ _opam/
 
 *.install
 .merlin
+
+# Opam files in the `examples` directory are invalid. The CI will fail when it
+# attempts to pin them.
+examples/**/*.opam
