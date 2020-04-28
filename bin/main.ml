@@ -102,13 +102,13 @@ let version_ocaml =
 
 let version_opam =
   let doc = "Version of opam to associate with the project." in
-  let env = Arg.env_var "VERSION_DUNE" in
+  let env = Arg.env_var "VERSION_OPAM" in
   Arg.(value & opt string "2.0" & info [ "version-opam" ] ~doc ~env)
 
 let version_ocamlformat =
   let doc = "Version of OCamlformat to associate with the project." in
   let env = Arg.env_var "VERSION_OCAMLFORMAT" in
-  Arg.(value & opt string "0.14.0" & info [ "version-ocamlformat" ] ~doc ~env)
+  Arg.(value & opt string "0.14.1" & info [ "version-ocamlformat" ] ~doc ~env)
 
 let ocamlformat_options =
   let doc =
