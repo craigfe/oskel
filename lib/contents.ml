@@ -41,16 +41,12 @@ module Dune_project = struct
 end
 
 module Dune = struct
-  let pp_public_name ppf n =
-    let file = Utils.file_of_project n in
-    if not (String.equal n file) then Fmt.pf ppf "\n (public_name %s)" n
-
   let library { name; _ } ppf =
-    (* Check if we need a public_name field *)
     let file = Utils.file_of_project name in
     Fmt.pf ppf {|(library
- (name %s)%a
- (libraries logs))|} file pp_public_name
+ (name %s)
+ (public_name %s)
+ (libraries logs))|} file
       name
 
   let pp_libraries ppf deps =
