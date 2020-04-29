@@ -1,4 +1,5 @@
 open Config
+open Utils
 
 type file_printer = Config.t -> Format.formatter -> unit
 
@@ -14,7 +15,7 @@ module Dune_project = struct
 (implicit_transitive_deps false)
 
 |}
-      c.version_dune c.name;
+      c.versions.dune c.name;
     Fmt.pf ppf
       {|(generate_opam_files true)
 (source (github %s/%s))
@@ -37,12 +38,12 @@ module Dune_project = struct
       Fmt.(list ~sep:(const string " ") string)
       dependencies
 
-  let minimal config ppf = Fmt.pf ppf "(lang dune %s)" config.version_dune
+  let minimal config ppf = Fmt.pf ppf "(lang dune %s)" config.versions.dune
 end
 
 module Dune = struct
   let library { name; _ } ppf =
-    let file = Utils.file_of_project name in
+    let file = Utils_naming.file_of_project name in
     Fmt.pf ppf {|(library
  (name %s)
  (public_name %s)
@@ -57,7 +58,7 @@ module Dune = struct
         pf ppf "@,(libraries %a)" (list ~sep:(const string " ") string) deps
 
   let executable ~name ?(libraries = []) ppf =
-    let file = Utils.file_of_project name in
+    let file = Utils_naming.file_of_project name in
     Fmt.pf ppf "@[<v 1>(executable@,(name %s)%a)@]" file pp_libraries libraries
 
   let install ~exe_name ~bin_name ppf =
@@ -168,7 +169,7 @@ and run the test suite with:
 ```
 dune runtest
 ```|}
-    config.name config.version_ocaml config.github_organisation config.name
+    config.name config.versions.ocaml config.github_organisation config.name
     config.name;
   match promote with
   | Some () ->
@@ -184,7 +185,7 @@ let readme_ppx = readme
 let changes { initial_version; _ } ppf = Fmt.pf ppf "# %s" initial_version
 
 let ocamlformat config ppf =
-  Fmt.pf ppf "@[<v 0>version = %s%a@]" config.version_ocamlformat
+  Fmt.pf ppf "@[<v 0>version = %s%a@]" config.versions.ocamlformat
     Fmt.(list (cut ++ pair ~sep:(const string " = ") string string))
     config.ocamlformat_options
 
@@ -220,9 +221,9 @@ depends: [
   "alcotest" {with-test}
 ]
 synopsis: "%s"|}
-    config.version_opam config.maintainer_fullname config.maintainer_fullname
+    config.versions.opam config.maintainer_fullname config.maintainer_fullname
     Config.pp_license config.license pp_homepage config pp_bugreports config
-    pp_devrepo config config.version_ocaml config.version_dune
+    pp_devrepo config config.versions.ocaml config.versions.dune
     config.project_synopsis
 
 let test_main_ml config ppf =
@@ -240,7 +241,7 @@ let () =
   Logs.set_level (Some Logs.Debug);
   Logs.set_reporter (Logs_fmt.reporter ());
   Alcotest.run "%s" [ ("suite", suite) ]|}
-    (Utils.findlib_of_project config.name)
+    (Utils_naming.findlib_of_project config.name)
     config.name
 
 let empty_mli _config ppf = Fmt.pf ppf "(* intentionally empty *)"
@@ -305,7 +306,7 @@ let term =
   Term.(const main $ setup_log, info "%s" ~doc ~exits ~man)
 
 let () = Term.exit (Term.eval term)|}
-    (Utils.findlib_of_project config.name)
+    (Utils_naming.findlib_of_project config.name)
     config.project_synopsis config.name
 
 let bin_help_txt config ppf =

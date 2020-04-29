@@ -1,46 +1,103 @@
 let ( >> ) f g x = g (f x)
 
-let exec cmd =
-  let in_channel = Unix.open_process_in cmd in
-  let line = try input_line in_channel with End_of_file -> "" in
-  match Unix.close_process_in in_channel with
-  | WEXITED 0 -> Ok line
-  | WEXITED n ->
-      Error (`Msg (Fmt.strf "Command \"%s\" failed with return code %d" cmd n))
-  | WSIGNALED _ | WSTOPPED _ ->
-      Error (`Msg (Fmt.strf "Command \"%s\" was interrupted" cmd))
+module T2 = struct
+  let map1 f (a, c) = (f a, c)
 
-let sequence_commands cmds =
-  List.fold_left
-    (fun ret cmd ->
-      match ret with
-      | Error e -> Error e
-      | Ok () -> (
-          match Unix.system cmd with
-          | WEXITED 0 -> Ok ()
-          | WEXITED n ->
-              Error
-                (`Msg
-                  (Fmt.strf "Command \"%s\" failed with return code %d" cmd n))
-          | WSIGNALED _ | WSTOPPED _ ->
-              Error (`Msg (Fmt.strf "Command \"%s\" was interrupted" cmd)) ))
-    (Ok ()) cmds
+  let map2 f (a, b) = (a, f b)
+end
 
-let print_to_file path printer =
-  let channel = open_out path in
-  let formatter = Format.formatter_of_out_channel channel in
-  printer formatter;
-  Format.pp_print_newline formatter ();
-  close_out channel
+module T3 = struct
+  let map f (a1, a2, a3) = (f a1, f a2, f a3)
+end
 
-let rec mkdir_p path =
-  try Unix.mkdir path 0o777 with
-  | Unix.Unix_error (EEXIST, _, _) -> ()
-  | Unix.Unix_error (ENOENT, _, _) ->
-      let parent = Filename.dirname path in
-      mkdir_p parent;
-      Unix.mkdir path 0o777
+module Result = struct
+  include Result
 
-let file_of_project = String.map (function '-' -> '_' | c -> c)
+  let errorf fmt = Format.kasprintf (fun msg -> Error (`Msg msg)) fmt
 
-let findlib_of_project = file_of_project >> String.capitalize_ascii
+  module Infix = struct
+    let ( >>= ) = Result.bind
+
+    let ( >>| ) x f = Result.map f x
+  end
+
+  module Syntax = struct
+    let ( let* ) = Result.bind
+
+    let ( let+ ) x f = Result.map f x
+  end
+end
+
+module List = struct
+  include List
+
+  let sequence_result list =
+    let rec inner acc = function
+      | [] -> Ok (List.rev acc)
+      | Error e :: _ -> Error e
+      | Ok o :: tl -> (inner [@ocaml.tailcall]) (o :: acc) tl
+    in
+    inner [] list
+end
+
+module Utils_unix = struct
+  let ( let+ ) x f = Lwt.map f x
+
+  let ( let* ) = Lwt.bind
+
+  let exec cmd =
+    let pipe_out, pipe_in = Lwt_unix.pipe () in
+    let* process_status =
+      Lwt_process.exec ~stderr:`Dev_null
+        ~stdout:(`FD_move (Lwt_unix.unix_file_descr pipe_in))
+        (Lwt_process.shell cmd)
+    in
+    let+ lines =
+      Lwt_io.(of_fd ~mode:input) pipe_out
+      |> Lwt_io.read_lines
+      |> Lwt_stream.to_list
+    in
+    match process_status with
+    | WEXITED 0 -> Ok lines
+    | WEXITED n ->
+        Result.errorf "Command \"%s\" failed with return code %d" cmd n
+    | WSIGNALED _ | WSTOPPED _ ->
+        Result.errorf "Command \"%s\" was interrupted" cmd
+
+  let execf fmt = Format.kasprintf exec ("@[<h>" ^^ fmt ^^ "@]")
+
+  let sequence_commands cmds =
+    List.fold_left
+      (fun ret cmd ->
+        match ret with
+        | Error e -> Error e
+        | Ok () -> (
+            match Unix.system cmd with
+            | WEXITED 0 -> Ok ()
+            | WEXITED n ->
+                Result.errorf "Command \"%s\" failed with return code %d" cmd n
+            | WSIGNALED _ | WSTOPPED _ ->
+                Result.errorf "Command \"%s\" was interrupted" cmd ))
+      (Ok ()) cmds
+
+  let print_to_file path printer =
+    let channel = open_out path in
+    let formatter = Format.formatter_of_out_channel channel in
+    printer formatter;
+    Format.pp_print_newline formatter ();
+    close_out channel
+
+  let rec mkdir_p path =
+    try Unix.mkdir path 0o777 with
+    | Unix.Unix_error (EEXIST, _, _) -> ()
+    | Unix.Unix_error (ENOENT, _, _) ->
+        let parent = Filename.dirname path in
+        mkdir_p parent;
+        Unix.mkdir path 0o777
+end
+
+module Utils_naming = struct
+  let file_of_project = String.map (function '-' -> '_' | c -> c)
+
+  let findlib_of_project = file_of_project >> String.capitalize_ascii
+end

@@ -20,6 +20,6 @@ auto-generation of [*.opam] files via [dune-project] etc. It supports generating
 binaries with Cmdliner, Fmt and Logs support. The resulting projects are
 compliant with [dune-release lint].
 ")
- (depends cmdliner (fmt (>= 0.8.7)) logs stdlib-shims))
+ (depends cmdliner (fmt (>= 0.8.7)) logs stdlib-shims lwt))
 
 

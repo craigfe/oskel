@@ -1,28 +1,40 @@
+let ( >>| ) x f = Lwt.map f x
+
 let git_user_name () =
-  match Oskel.Utils.exec "git config user.name" with
-  | Ok name -> if String.(equal (trim name) "") then None else Some name
+  Oskel.Utils.Utils_unix.exec "git config user.name"
+  >>| function
+  | Ok [ name ] -> if String.(equal (trim name) "") then None else Some name
+  | Ok o ->
+      Fmt.failwith "Unexpected output from `git config`: %a"
+        Fmt.Dump.(list string)
+        o
   | Error _ -> None
 
 let git_email () =
-  match Oskel.Utils.exec "git config user.email" with
-  | Ok email -> if String.(equal (trim email) "") then None else Some email
+  Oskel.Utils.Utils_unix.exec "git config user.email"
+  >>| function
+  | Ok [ email ] -> if String.(equal (trim email) "") then None else Some email
+  | Ok o ->
+      Fmt.failwith "Unexpected output from `git config`: %a"
+        Fmt.Dump.(list string)
+        o
   | Error _ -> None
 
-let ( >>? ) x f = match x with Some s -> Some s | None -> f ()
+let ( >>? ) x f = match x with Some s -> Lwt.return (Some s) | None -> f ()
 
 let run name project_kind project_synopsis maintainer_fullname maintainer_email
-    github_organisation initial_version license dependencies version_dune
-    version_ocaml version_opam version_ocamlformat ocamlformat_options dry_run
-    non_interactive git_repo current_year () =
+    github_organisation initial_version license dependencies versions
+    ocamlformat_options dry_run non_interactive git_repo current_year () =
   let maintainer_fullname = maintainer_fullname >>? git_user_name in
   let maintainer_email = maintainer_email >>? git_email in
-  Oskel.run ?name ~project_kind ?project_synopsis ?maintainer_fullname
-    ?maintainer_email ?github_organisation ?initial_version ~license
-    ~dependencies ~version_dune ~version_ocaml ~version_opam
-    ~version_ocamlformat ~ocamlformat_options ~dry_run ~non_interactive
+  Oskel.run ?name ~project_kind ?project_synopsis ~maintainer_fullname
+    ~maintainer_email ?github_organisation ?initial_version ~license
+    ~dependencies ~versions ~ocamlformat_options ~dry_run ~non_interactive
     ~git_repo ?current_year ()
 
 open Cmdliner
+
+let fmap f x = Term.(app (const f) x)
 
 module Arg = struct
   include Arg
@@ -93,22 +105,40 @@ let dependencies =
 let version_dune =
   let doc = "Version of dune to associate with the project." in
   let env = Arg.env_var "VERSION_DUNE" in
-  Arg.(value & opt string "2.0" & info [ "version-dune" ] ~doc ~env)
+  Arg.(value & opt (some string) None & info [ "version-dune" ] ~doc ~env)
+  |> fmap (fun x -> `Dune x)
 
 let version_ocaml =
   let doc = "Version of OCaml to associate with the project." in
   let env = Arg.env_var "VERSION_OCAML" in
-  Arg.(value & opt string "4.09.0" & info [ "version-ocaml" ] ~doc ~env)
+  Arg.(value & opt (some string) None & info [ "version-ocaml" ] ~doc ~env)
+  |> fmap (fun x -> `OCaml x)
 
 let version_opam =
-  let doc = "Version of opam to associate with the project." in
+  let doc =
+    Fmt.strf
+      "Version of opam to associate with the project. The default value is \
+       `%s`."
+      Oskel.default_opam_version
+  in
   let env = Arg.env_var "VERSION_OPAM" in
-  Arg.(value & opt string "2.0" & info [ "version-opam" ] ~doc ~env)
+  Arg.(value & opt (some string) None & info [ "version-opam" ] ~doc ~env)
+  |> fmap (fun x -> `Opam x)
 
 let version_ocamlformat =
   let doc = "Version of OCamlformat to associate with the project." in
   let env = Arg.env_var "VERSION_OCAMLFORMAT" in
-  Arg.(value & opt string "0.14.1" & info [ "version-ocamlformat" ] ~doc ~env)
+  Arg.(
+    value & opt (some string) None & info [ "version-ocamlformat" ] ~doc ~env)
+  |> fmap (fun x -> `OCamlformat x)
+
+let versions =
+  Term.(
+    const Oskel.v_versions
+    $ version_dune
+    $ version_ocaml
+    $ version_opam
+    $ version_ocamlformat)
 
 let ocamlformat_options =
   let doc =
@@ -165,10 +195,7 @@ let term =
       $ initial_version
       $ license
       $ dependencies
-      $ version_dune
-      $ version_ocaml
-      $ version_opam
-      $ version_ocamlformat
+      $ versions
       $ ocamlformat_options
       $ dry_run
       $ non_interactive

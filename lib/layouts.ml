@@ -1,3 +1,5 @@
+open Utils
+
 type file =
   | Folder of string * file list
   | File of string * (Format.formatter -> unit)
@@ -52,7 +54,7 @@ let license (config : Config.t) =
 
 let library (config : Config.t) =
   let open Contents in
-  let src_file = Utils.file_of_project config.name in
+  let src_file = Utils_naming.file_of_project config.name in
   Folder
     ( config.name,
       [
@@ -87,7 +89,7 @@ let library = { layout = library; post_init = [] }
 let binary (config : Config.t) =
   let open Contents in
   let exe_name = "main" in
-  let lib_file = Utils.file_of_project config.name in
+  let lib_file = Utils_naming.file_of_project config.name in
   let bin_dune ppf =
     let libraries =
       [
@@ -149,7 +151,7 @@ let binary = { layout = binary; post_init = [] }
 
 let executable (config : Config.t) =
   let name = config.name in
-  let toplevel_file = Utils.file_of_project name in
+  let toplevel_file = Utils.Utils_naming.file_of_project name in
   let libraries = config.dependencies in
   let open Contents in
   Folder
@@ -165,7 +167,7 @@ let executable = { layout = executable; post_init = [] }
 (* Work in progress *)
 let _ppx_deriver (config : Config.t) =
   let open Contents in
-  let toplevel_file = Utils.file_of_project config.name in
+  let toplevel_file = Utils_naming.file_of_project config.name in
   Folder
     ( config.name,
       [
@@ -209,7 +211,7 @@ let project_of_kind = function
 let post_initialise config after =
   let open Config in
   Sys.chdir config.name;
-  Utils.sequence_commands
+  Utils_unix.sequence_commands
     ( ( if config.git_repo then
         [
           (* initialise git repository *)
@@ -227,12 +229,12 @@ let instantiate config { layout; post_init } =
     | Folder (name, contents) ->
         let path = Filename.concat root name in
         Logs.debug (fun m -> m "Creating folder %s" path);
-        Utils.mkdir_p path;
+        Utils_unix.mkdir_p path;
         contents |> List.iter (aux path)
     | File (name, printer) ->
         let path = Filename.concat root name in
         Logs.debug (fun m -> m "Creating file %s" path);
-        Utils.print_to_file path printer
+        Utils_unix.print_to_file path printer
   in
   aux Filename.current_dir_name (layout config);
   post_initialise config post_init

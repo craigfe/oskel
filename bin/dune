@@ -1,6 +1,6 @@
 (executable
  (name main)
- (libraries cmdliner fmt fmt.cli fmt.tty logs logs.cli logs.fmt oskel))
+ (libraries cmdliner fmt fmt.cli fmt.tty logs logs.cli logs.fmt oskel lwt))
 
 (install
  (section bin)
