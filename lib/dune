@@ -1,3 +1,4 @@
 (library
  (name oskel)
- (libraries unix logs logs.lwt fmt stdlib-shims lwt lwt.unix))
+ (libraries unix logs logs.lwt fmt stdlib-shims lwt lwt.unix)
+ (preprocess future_syntax))
