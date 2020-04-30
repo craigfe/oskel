@@ -10,28 +10,47 @@ module T3 = struct
   let map f (a1, a2, a3) = (f a1, f a2, f a3)
 end
 
+module Option = struct
+  type 'a t = 'a option
+
+  let get = function Some o -> o | None -> raise (Invalid_argument "None")
+
+  let value opt ~default = match opt with Some o -> o | None -> default
+end
+
 module Result = struct
-  include Result
+  type ('a, 'e) t = ('a, 'e) result
+
+  let map f = function Ok o -> Ok (f o) | Error _ as e -> e
+
+  let bind x f = match x with Ok o -> f o | Error _ as e -> e
 
   let errorf fmt = Format.kasprintf (fun msg -> Error (`Msg msg)) fmt
 
   module Infix = struct
-    let ( >>= ) = Result.bind
+    let ( >>= ) = bind
 
-    let ( >>| ) x f = Result.map f x
+    let ( >>| ) x f = map f x
 
-    let ( >=> ) f g x = Result.bind (f x) g
+    let ( >=> ) f g x = bind (f x) g
   end
 
   module Syntax = struct
-    let ( let* ) = Result.bind
+    let ( let* ) = bind
 
-    let ( let+ ) x f = Result.map f x
+    let ( let+ ) x f = map f x
   end
 end
 
 module List = struct
   include List
+
+  let rec filter_map f = function
+    | [] -> []
+    | x :: xs -> (
+        match f x with
+        | Some x -> x :: filter_map f xs
+        | None -> filter_map f xs )
 
   module Infix = struct
     let ( >>| ) x f = List.map f x

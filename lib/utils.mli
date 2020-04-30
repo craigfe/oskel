@@ -14,6 +14,8 @@ end
 module List : sig
   include module type of List
 
+  val filter_map : ('a -> 'b option) -> 'a list -> 'b list
+
   module Infix : sig
     val ( >>| ) : 'a list -> ('a -> 'b) -> 'b list
   end
@@ -21,8 +23,20 @@ module List : sig
   val sequence_result : ('a, 'e) result list -> ('a list, 'e) result
 end
 
+module Option : sig
+  type 'a t = 'a option
+
+  val get : 'a t -> 'a
+
+  val value : 'a option -> default:'a -> 'a
+end
+
 module Result : sig
-  include module type of Result
+  type ('a, 'e) t = ('a, 'e) result
+
+  val map : ('a -> 'b) -> ('a, 'e) t -> ('b, 'e) t
+
+  val bind : ('a, 'e) t -> ('a -> ('b, 'e) t) -> ('b, 'e) t
 
   val errorf :
     ('a, Format.formatter, unit, ('b, [> `Msg of string ]) result) format4 -> 'a
