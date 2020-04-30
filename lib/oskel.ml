@@ -1,9 +1,7 @@
 module License = License
 module Utils = Utils
+module Opam = Opam
 open Utils
-open Result.Infix
-
-let default_opam_version = "2.0"
 
 let progress_bar msg : (unit -> unit Lwt.t) * bool ref * bool ref =
   let ( >>= ) = Lwt.bind in
@@ -36,61 +34,6 @@ let progress_bar msg : (unit -> unit Lwt.t) * bool ref * bool ref =
       >>= fun () -> loop (List.tl frames)
   in
   ((fun () -> loop frames), finished, active)
-
-let package_to_string = function
-  | `Dune -> "dune"
-  | `OCaml -> "ocaml"
-  | `OCamlformat -> "ocamlformat"
-
-let get_last_in_line (tag, available_versions) =
-  available_versions
-  |> String.split_on_char ' '
-  |> List.rev
-  |> function
-  | latest :: _ -> Ok (tag, latest)
-  | [] ->
-      Result.errorf "No available versions for package `%s`"
-        (package_to_string tag)
-
-type versions = (Config.versions, [ `Msg of string ]) result Lwt.t
-
-let v_versions (`Dune dune) (`OCaml ocaml) (`Opam opam)
-    (`OCamlformat ocamlformat) : versions =
-  let ( let+ ) x f = Lwt.map (Result.map f) x in
-  let packages =
-    (* These must be in alphabetical order, as [opam] always reports results in
-       this order. See https://github.com/ocaml/opam/issues/4163. *)
-    [ (`Dune, dune); (`OCaml, ocaml); (`OCamlformat, ocamlformat) ]
-  in
-
-  (* Opam queries are slow, so we only query for the latest versions of packages
-     that aren't already specified. *)
-  let packages_to_query =
-    packages
-    |> List.filter_map (fun (tag, version) ->
-           match version with Some _ -> None | None -> Some tag)
-  in
-
-  let+ packages =
-    match packages_to_query with
-    (* No query necessary *)
-    | [] -> Lwt.return (Ok (packages |> List.map (T2.map2 Option.get)))
-    | _ :: _ ->
-        packages_to_query
-        |> List.map package_to_string
-        |> Utils_unix.execf "opam show --field=available-versions -- %a"
-             Fmt.(list ~sep:sp string)
-        |> Lwt.map (fun r ->
-               r
-               >>| List.combine packages_to_query
-               >>= (List.map get_last_in_line >> List.sequence_result))
-  in
-
-  let dune = List.assoc `Dune packages
-  and ocaml = List.assoc `OCaml packages
-  and ocamlformat = List.assoc `OCamlformat packages
-  and opam = Option.value ~default:default_opam_version opam in
-  Config.{ opam; dune; ocaml; ocamlformat }
 
 let main ~dry_run ~project_kind config =
   let project = Layouts.project_of_kind project_kind in
@@ -131,11 +74,13 @@ let ask ~non_interactive ?default prompt = function
         | "", Some default -> Ok default
         | _ -> Ok line )
 
-let assert_ok = function
-  | Ok x -> x
-  | Error (`Msg msg) ->
-      Logs.app (fun m -> m "\n%a %s." Fmt.(styled `Red string) "error" msg);
-      exit 1
+let show_error (type a) msg : a =
+  Logs.app (fun m -> m "\n%a %s." Fmt.(styled `Red string) "error" msg);
+  exit 1
+
+let show_errorf fmt = Format.kasprintf show_error fmt
+
+let assert_ok = function Ok x -> x | Error (`Msg msg) -> show_error msg
 
 let adjective_animal () =
   let random_elt l = List.length l |> Random.int |> List.nth l in
@@ -187,7 +132,7 @@ let populate_config ~non_interactive ~name ~maintainer_fullname
 
 let run ~project_kind ?name ?project_synopsis ~maintainer_fullname
     ~maintainer_email ?github_organisation ?initial_version ~license
-    ~dependencies ~(versions : versions) ~ocamlformat_options ~dry_run
+    ~dependencies ~(versions : Opam.versions) ~ocamlformat_options ~dry_run
     ~non_interactive ~git_repo ?(current_year = get_current_year ()) () =
   let ( >>= ) = Lwt.bind and ( >>| ) x f = Lwt.map f x in
   Random.self_init ();
@@ -215,7 +160,18 @@ let run ~project_kind ?name ?project_synopsis ~maintainer_fullname
              if !progress_bar_active then Printf.printf "\r\n%!";
              return ())
     and+ c = config >* progress in
-    let versions = versions |> assert_ok in
+    let versions =
+      versions
+      |> function
+      | Ok x -> x
+      | Error (`Msg msg) -> show_error msg
+      | Error (`Command_not_found cmd) ->
+          show_errorf
+            "Command `%s` not found (error code 127). Either install `%s` or \
+             specify versions of Dune, OCaml and OCamlformat explicitly"
+            cmd cmd
+    in
+
     main ~project_kind ~dry_run
       {
         name = c#name;

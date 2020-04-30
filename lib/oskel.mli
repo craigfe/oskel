@@ -1,16 +1,8 @@
 module License = License
 module Utils = Utils
+module Opam = Opam
 
-type versions
-
-val default_opam_version : string
-
-val v_versions :
-  [ `Dune of string option ] ->
-  [ `OCaml of string option ] ->
-  [ `Opam of string option ] ->
-  [ `OCamlformat of string option ] ->
-  versions
+val show_errorf : ('a, Format.formatter, unit, 'b) format4 -> 'a
 
 val run :
   project_kind:[ `Library | `Binary | `Executable ] ->
@@ -21,10 +13,10 @@ val run :
   maintainer_email:string option Lwt.t ->
   ?github_organisation:string ->
   ?initial_version:string ->
+  (* *)
   license:License.t ->
   dependencies:string list ->
-  versions:versions ->
-  (* *)
+  versions:Opam.versions ->
   ocamlformat_options:(string * string) list ->
   dry_run:bool ->
   non_interactive:bool ->

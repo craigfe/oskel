@@ -19,6 +19,8 @@ module Result = struct
     let ( >>= ) = Result.bind
 
     let ( >>| ) x f = Result.map f x
+
+    let ( >=> ) f g x = Result.bind (f x) g
   end
 
   module Syntax = struct
@@ -30,6 +32,10 @@ end
 
 module List = struct
   include List
+
+  module Infix = struct
+    let ( >>| ) x f = List.map f x
+  end
 
   let sequence_result list =
     let rec inner acc = function
@@ -59,6 +65,8 @@ module Utils_unix = struct
     in
     match process_status with
     | WEXITED 0 -> Ok lines
+    | WEXITED 127 ->
+        Error (`Command_not_found (String.split_on_char ' ' cmd |> List.hd))
     | WEXITED n ->
         Result.errorf "Command \"%s\" failed with return code %d" cmd n
     | WSIGNALED _ | WSTOPPED _ ->

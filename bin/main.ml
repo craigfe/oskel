@@ -5,7 +5,7 @@ let git_user_name () =
   >>| function
   | Ok [ name ] -> if String.(equal (trim name) "") then None else Some name
   | Ok o ->
-      Fmt.failwith "Unexpected output from `git config`: %a"
+      Oskel.show_errorf "Unexpected output from `git config`: %a"
         Fmt.Dump.(list string)
         o
   | Error _ -> None
@@ -15,7 +15,7 @@ let git_email () =
   >>| function
   | Ok [ email ] -> if String.(equal (trim email) "") then None else Some email
   | Ok o ->
-      Fmt.failwith "Unexpected output from `git config`: %a"
+      Oskel.show_errorf "Unexpected output from `git config`: %a"
         Fmt.Dump.(list string)
         o
   | Error _ -> None
@@ -119,7 +119,7 @@ let version_opam =
     Fmt.strf
       "Version of opam to associate with the project. The default value is \
        `%s`."
-      Oskel.default_opam_version
+      Oskel.Opam.default_opam_version
   in
   let env = Arg.env_var "VERSION_OPAM" in
   Arg.(value & opt (some string) None & info [ "version-opam" ] ~doc ~env)
@@ -134,7 +134,7 @@ let version_ocamlformat =
 
 let versions =
   Term.(
-    const Oskel.v_versions
+    const Oskel.Opam.get_versions
     $ version_dune
     $ version_ocaml
     $ version_opam
