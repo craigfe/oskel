@@ -1,21 +1,22 @@
 module License = License
 module Utils = Utils
+module Opam = Opam
+
+val show_errorf : ('a, Format.formatter, unit, 'b) format4 -> 'a
 
 val run :
   project_kind:[ `Library | `Binary | `Executable ] ->
   (* These are asked for from Stdin if not supplied *)
   ?name:string ->
   ?project_synopsis:string ->
-  ?maintainer_fullname:string ->
-  ?maintainer_email:string ->
+  maintainer_fullname:string option Lwt.t ->
+  maintainer_email:string option Lwt.t ->
   ?github_organisation:string ->
   ?initial_version:string ->
+  (* *)
   license:License.t ->
   dependencies:string list ->
-  version_dune:string ->
-  version_ocaml:string ->
-  version_opam:string ->
-  version_ocamlformat:string ->
+  versions:Opam.versions ->
   ocamlformat_options:(string * string) list ->
   dry_run:bool ->
   non_interactive:bool ->

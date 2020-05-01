@@ -1,5 +1,12 @@
 let pp_license ppf _ = Fmt.pf ppf "MIT"
 
+type versions = {
+  dune : string;
+  ocaml : string;
+  opam : string;
+  ocamlformat : string;
+}
+
 type t = {
   name : string;
   project_synopsis : string;
@@ -9,10 +16,7 @@ type t = {
   initial_version : string;
   license : License.t;
   dependencies : string list;
-  version_dune : string;
-  version_ocaml : string;
-  version_opam : string;
-  version_ocamlformat : string;
+  versions : versions;
   ocamlformat_options : (string * string) list;
   current_year : int;
   git_repo : bool;

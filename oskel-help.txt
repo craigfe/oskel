@@ -73,18 +73,18 @@ OPTIONS
        --version
            Show version information.
 
-       --version-dune=VAL (absent=2.0 or OSKEL_VERSION_DUNE env)
+       --version-dune=VAL (absent OSKEL_VERSION_DUNE env)
            Version of dune to associate with the project.
 
-       --version-ocaml=VAL (absent=4.09.0 or OSKEL_VERSION_OCAML env)
+       --version-ocaml=VAL (absent OSKEL_VERSION_OCAML env)
            Version of OCaml to associate with the project.
 
-       --version-ocamlformat=VAL (absent=0.14.1 or OSKEL_VERSION_OCAMLFORMAT
-       env)
+       --version-ocamlformat=VAL (absent OSKEL_VERSION_OCAMLFORMAT env)
            Version of OCamlformat to associate with the project.
 
-       --version-opam=VAL (absent=2.0 or OSKEL_VERSION_OPAM env)
-           Version of opam to associate with the project.
+       --version-opam=VAL (absent OSKEL_VERSION_OPAM env)
+           Version of opam to associate with the project. The default value
+           is `2.0`.
 
 EXIT STATUS
        oskel exits with the following status:

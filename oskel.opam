@@ -21,6 +21,8 @@ depends: [
   "fmt" {>= "0.8.7"}
   "logs"
   "stdlib-shims"
+  "ocaml-syntax-shims"
+  "lwt"
 ]
 build: [
   ["dune" "subst"] {pinned}
