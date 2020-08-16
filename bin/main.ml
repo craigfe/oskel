@@ -23,14 +23,15 @@ let git_email () =
 let ( >>? ) x f = match x with Some s -> Lwt.return (Some s) | None -> f ()
 
 let run name project_kind project_synopsis maintainer_fullname maintainer_email
-    github_organisation initial_version license dependencies versions
-    ocamlformat_options dry_run non_interactive git_repo current_year () =
+    github_organisation initial_version working_dir license dependencies
+    versions ocamlformat_options dry_run non_interactive git_repo current_year
+    () =
   let maintainer_fullname = maintainer_fullname >>? git_user_name in
   let maintainer_email = maintainer_email >>? git_email in
   Oskel.run ?name ~project_kind ?project_synopsis ~maintainer_fullname
-    ~maintainer_email ?github_organisation ?initial_version ~license
-    ~dependencies ~versions ~ocamlformat_options ~dry_run ~non_interactive
-    ~git_repo ?current_year ()
+    ~maintainer_email ?github_organisation ?initial_version ?working_dir
+    ~license ~dependencies ~versions ~ocamlformat_options ~dry_run
+    ~non_interactive ~git_repo ?current_year ()
 
 open Cmdliner
 
@@ -83,6 +84,13 @@ let initial_version =
   let doc = "Initial version at which to release the project." in
   let env = Arg.env_var "INITIAL_VERSION" in
   Arg.(value & opt (some string) None & info [ "initial-version" ] ~doc ~env)
+
+let working_dir =
+  let doc =
+    "Run as if Oskel was started in <path> instead of the current working \
+     directory."
+  in
+  Arg.(value & opt (some string) None & info [ "working-dir" ] ~doc)
 
 let license =
   let licenses = Oskel.License.all in
@@ -193,6 +201,7 @@ let term =
       $ maintainer_email
       $ github_organisation
       $ initial_version
+      $ working_dir
       $ license
       $ dependencies
       $ versions

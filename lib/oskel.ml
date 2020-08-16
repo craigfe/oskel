@@ -131,11 +131,13 @@ let populate_config ~non_interactive ~name ~maintainer_fullname
     end)
 
 let run ~project_kind ?name ?project_synopsis ~maintainer_fullname
-    ~maintainer_email ?github_organisation ?initial_version ~license
-    ~dependencies ~(versions : Opam.versions) ~ocamlformat_options ~dry_run
-    ~non_interactive ~git_repo ?(current_year = get_current_year ()) () =
+    ~maintainer_email ?github_organisation ?initial_version ?working_dir
+    ~license ~dependencies ~(versions : Opam.versions) ~ocamlformat_options
+    ~dry_run ~non_interactive ~git_repo ?(current_year = get_current_year ()) ()
+    =
   let ( >>= ) = Lwt.bind and ( >>| ) x f = Lwt.map f x in
   Random.self_init ();
+  (match working_dir with None -> () | Some dir -> Sys.chdir dir);
   let promise =
     let* () =
       Logs_lwt.app (fun m ->

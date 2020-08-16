@@ -86,6 +86,13 @@ OPTIONS
            Version of opam to associate with the project. The default value
            is `2.0`.
 
+       --working-dir=VAL
+           Run as if Oskel was started in <path> instead of the current
+           working directory.
+
+       --yes, --assume-yes
+           Respond `yes' to all prompts and accept all defaults.
+
 EXIT STATUS
        oskel exits with the following status:
 

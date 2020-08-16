@@ -13,6 +13,7 @@ val run :
   maintainer_email:string option Lwt.t ->
   ?github_organisation:string ->
   ?initial_version:string ->
+  ?working_dir:string ->
   (* *)
   license:License.t ->
   dependencies:string list ->
