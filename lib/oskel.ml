@@ -3,10 +3,13 @@ module Utils = Utils
 module Opam = Opam
 open Utils
 
+let stdout_is_tty = Unix.(isatty stdout)
+
 let progress_bar msg : (unit -> unit Lwt.t) * bool ref * bool ref =
   let ( >>= ) = Lwt.bind in
   let finished = ref false in
   let active = ref false in
+  let shown_once = ref false in
   let rec frames =
     "⠋"
     :: "⠙"
@@ -28,7 +31,10 @@ let progress_bar msg : (unit -> unit Lwt.t) * bool ref * bool ref =
         if not !active then Printf.printf "\n";
         active := true
       in
-      Printf.printf "\r[ %s ] %s%!" (List.hd frames) msg;
+      if stdout_is_tty || not !shown_once then (
+        if !shown_once then Printf.printf "\r";
+        Printf.printf "[ %s ] %s%!" (List.hd frames) msg;
+        shown_once := true );
       Lwt_unix.sleep 0.1
       (* Logs_lwt.app (fun m -> m "%s %s\r" (List.hd frames) msg) *)
       >>= fun () -> loop (List.tl frames)
