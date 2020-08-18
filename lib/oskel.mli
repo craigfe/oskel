@@ -14,6 +14,7 @@ val run :
   ?github_organisation:string ->
   ?initial_version:string ->
   ?working_dir:string ->
+  assume_yes:bool ->
   (* *)
   license:License.t ->
   dependencies:string list ->

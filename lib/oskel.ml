@@ -48,7 +48,11 @@ let main ~dry_run ~project_kind config =
     match Layouts.instantiate config project with
     | Ok () ->
         Logs.app (fun m ->
-            m "%a Created new project" Fmt.(styled `Green string) "success")
+            m "%a Created new project in `%a'"
+              Fmt.(styled `Green string)
+              "success"
+              Fmt.(styled `Blue string)
+              (Sys.getcwd ()))
     | Error (`Msg msg) ->
         Fmt.epr "%s" msg;
         exit 1
@@ -56,29 +60,41 @@ let main ~dry_run ~project_kind config =
 let get_current_year () =
   Unix.time () |> Unix.localtime |> fun t -> t.Unix.tm_year + 1900
 
-let ask ~non_interactive ?default prompt = function
+let ask ~non_interactive ~assume_yes ?default prompt = function
   | Some s -> Lwt.return (Ok s)
   | None -> (
       let ( let+ ) x f = Lwt.map f x in
-      if non_interactive then
-        Lwt.return
-          (Result.errorf "Must set '%s' or enable interactive mode" prompt)
-      else
-        let pp_default =
-          Fmt.(option (string |> using (fun s -> " (" ^ s ^ ")")))
-        in
-        Fmt.pr "%a %s%a: %!"
-          Fmt.(styled `Faint string)
-          "question" prompt pp_default default;
-        let+ line =
-          Sys.catch_break true;
-          let+ line = Lwt_io.read_line Lwt_io.stdin in
-          Sys.catch_break false;
-          line
-        in
-        match (line, default) with
-        | "", Some default -> Ok default
-        | _ -> Ok line )
+      match (assume_yes, non_interactive, default) with
+      | true, _, Some default -> Lwt.return (Ok default)
+      | true, _, None ->
+          Lwt.return (Result.errorf "No default available for `%s'" prompt)
+      | false, true, Some _ ->
+          Lwt.return
+            (Result.errorf
+               "Must set `%s', assume defaults with `--assume-yes', or enable \
+                interactive mode"
+               prompt)
+      | false, true, None ->
+          Lwt.return
+            (Result.errorf "Must set `%s' or enable interactive mode" prompt)
+      | false, false, _ -> (
+          let pp_default =
+            Fmt.(
+              option
+                (string |> using (function "" -> "" | s -> " (" ^ s ^ ")")))
+          in
+          Fmt.pr "%a %s%a: %!"
+            Fmt.(styled `Faint string)
+            "question" prompt pp_default default;
+          let+ line =
+            Sys.catch_break true;
+            let+ line = Lwt_io.read_line Lwt_io.stdin in
+            Sys.catch_break false;
+            line
+          in
+          match (line, default) with
+          | "", Some default -> Ok default
+          | _ -> Ok line ) )
 
 let show_error (type a) msg : a =
   Logs.app (fun m -> m "\n%a %s." Fmt.(styled `Red string) "error" msg);
@@ -98,28 +114,24 @@ and ( let+ ) x f = Lwt.map f x
 
 and ( and+ ) = Lwt.both
 
-let populate_config ~non_interactive ~name ~maintainer_fullname
+let populate_config ~non_interactive ~assume_yes ~name ~maintainer_fullname
     ~maintainer_email ~github_organisation ~project_synopsis ~initial_version =
   let ( >|= ) x f = Lwt.map f x in
+  let ask = ask ~non_interactive ~assume_yes in
   let* name =
-    ask ~non_interactive ~default:(adjective_animal ()) "name" name
+    ask ~default:(adjective_animal ()) "name" name
     >|= fun x -> Result.bind x Validate.project |> assert_ok
   in
-  let* maintainer_fullname =
-    ask ~non_interactive "author" maintainer_fullname >|= assert_ok
-  in
-  let* maintainer_email =
-    ask ~non_interactive "email" maintainer_email >|= assert_ok
-  in
+  let* maintainer_fullname = ask "author" maintainer_fullname >|= assert_ok in
+  let* maintainer_email = ask "email" maintainer_email >|= assert_ok in
   let* github_organisation =
-    ask ~non_interactive "GitHub name" github_organisation >|= assert_ok
+    ask "GitHub name" github_organisation >|= assert_ok
   in
   let* project_synopsis =
-    ask ~non_interactive "synopsis" project_synopsis >|= assert_ok
+    ask ~default:"" "synopsis" project_synopsis >|= assert_ok
   in
   let* initial_version =
-    ask ~non_interactive ~default:"0.1.0" "version" initial_version
-    >|= assert_ok
+    ask ~default:"0.1.0" "version" initial_version >|= assert_ok
   in
   Lwt.return
     (object
@@ -138,9 +150,9 @@ let populate_config ~non_interactive ~name ~maintainer_fullname
 
 let run ~project_kind ?name ?project_synopsis ~maintainer_fullname
     ~maintainer_email ?github_organisation ?initial_version ?working_dir
-    ~license ~dependencies ~(versions : Opam.versions) ~ocamlformat_options
-    ~dry_run ~non_interactive ~git_repo ?(current_year = get_current_year ()) ()
-    =
+    ~assume_yes ~license ~dependencies ~(versions : Opam.versions)
+    ~ocamlformat_options ~dry_run ~non_interactive ~git_repo
+    ?(current_year = get_current_year ()) () =
   let ( >>= ) = Lwt.bind and ( >>| ) x f = Lwt.map f x in
   Random.self_init ();
   (match working_dir with None -> () | Some dir -> Sys.chdir dir);
@@ -152,7 +164,7 @@ let run ~project_kind ?name ?project_synopsis ~maintainer_fullname
     let* maintainer_fullname = maintainer_fullname in
     let* maintainer_email = maintainer_email in
     let config =
-      populate_config ~non_interactive ~name ~maintainer_fullname
+      populate_config ~non_interactive ~assume_yes ~name ~maintainer_fullname
         ~maintainer_email ~github_organisation ~project_synopsis
         ~initial_version
     in

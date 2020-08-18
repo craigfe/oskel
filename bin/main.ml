@@ -23,14 +23,14 @@ let git_email () =
 let ( >>? ) x f = match x with Some s -> Lwt.return (Some s) | None -> f ()
 
 let run name project_kind project_synopsis maintainer_fullname maintainer_email
-    github_organisation initial_version working_dir license dependencies
-    versions ocamlformat_options dry_run non_interactive git_repo current_year
-    () =
+    github_organisation initial_version working_dir assume_yes license
+    dependencies versions ocamlformat_options dry_run non_interactive git_repo
+    current_year () : unit =
   let maintainer_fullname = maintainer_fullname >>? git_user_name in
   let maintainer_email = maintainer_email >>? git_email in
   Oskel.run ?name ~project_kind ?project_synopsis ~maintainer_fullname
     ~maintainer_email ?github_organisation ?initial_version ?working_dir
-    ~license ~dependencies ~versions ~ocamlformat_options ~dry_run
+    ~assume_yes ~license ~dependencies ~versions ~ocamlformat_options ~dry_run
     ~non_interactive ~git_repo ?current_year ()
 
 open Cmdliner
@@ -91,6 +91,10 @@ let working_dir =
      directory."
   in
   Arg.(value & opt (some string) None & info [ "working-dir" ] ~doc)
+
+let assume_yes =
+  let doc = "Respond `yes' to all prompts and accept all defaults." in
+  Arg.(value & flag & info [ "yes"; "assume-yes" ] ~doc)
 
 let license =
   let licenses = Oskel.License.all in
@@ -202,6 +206,7 @@ let term =
       $ github_organisation
       $ initial_version
       $ working_dir
+      $ assume_yes
       $ license
       $ dependencies
       $ versions
