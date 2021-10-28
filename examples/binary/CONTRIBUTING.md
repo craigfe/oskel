@@ -1,6 +1,6 @@
 ## Setting up your working environment
 
-binary requires OCaml 4.09.0 or higher so you will need a corresponding opam
+binary requires OCaml [m4.14.0[0m or higher so you will need a corresponding opam
 switch. You can install a switch with the latest OCaml version by running:
 
 ```

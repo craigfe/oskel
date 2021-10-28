@@ -1,3 +1,4 @@
 (library
  (name library)
+ (public_name library)
  (libraries logs))
