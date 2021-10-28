@@ -1,4 +1,4 @@
-(lang dune 2.0)
+(lang dune [01;35m2.9.1[0m)
 (name library)
 (implicit_transitive_deps false)
 
