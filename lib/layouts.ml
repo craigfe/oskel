@@ -105,7 +105,7 @@ let binary (config : Config.t) =
       |> List.sort String.compare
     in
     Dune.executable ~name:exe_name ~libraries ppf;
-    Fmt.pf ppf "\n";
+    Fmt.pf ppf "@\n";
     Dune.install ~exe_name ~bin_name:config.name ppf
   in
   Folder

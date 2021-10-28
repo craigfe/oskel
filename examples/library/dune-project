@@ -1,17 +1,16 @@
 (lang dune [01;35m2.9.1[0m)
 (name library)
 (implicit_transitive_deps false)
-
 (generate_opam_files true)
-(source (github JoeBloggs/library))
+(source
+ (github JoeBloggs/library))
 (maintainers "Joe Bloggs <joe@example.com>")
+
 (authors "Joe Bloggs <joe@example.com>")
 
 (package
  (name library)
  (synopsis "Single package in `src`")
- (description "\
-Single package in `src`
-")
- (documentation https://JoeBloggs.github.io/library/)
- (depends (alcotest :with-test) fmt logs))
+ (description "Single package in `src`")
+ (documentation "https://JoeBloggs.github.io/library/")
+ (depends fmt logs))
