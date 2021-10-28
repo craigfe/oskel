@@ -5,6 +5,9 @@ type file_printer = Config.t -> Format.formatter -> unit
 
 let dep_alcotest = { dep_name = "alcotest"; dep_filter = Some "with-test" }
 
+let project_dependencies config =
+  config.dependencies |> List.append [ dep_alcotest ] |> List.sort_uniq compare
+
 module Dune_project = struct
   let pp_depend ppf dep =
     match dep.dep_filter with
@@ -12,9 +15,6 @@ module Dune_project = struct
     | Some filter -> Fmt.pf ppf "(%s :%s)" dep.dep_name filter
 
   let package c ppf =
-    let dependencies =
-      c.dependencies |> List.append [ dep_alcotest ] |> List.sort_uniq compare
-    in
     Fmt.pf ppf {|(lang dune %s)
 (name %s)
 (implicit_transitive_deps false)
@@ -41,7 +41,7 @@ module Dune_project = struct
  (depends %a))|}
       c.name c.project_synopsis c.project_synopsis c.github_organisation c.name
       Fmt.(list ~sep:(const string " ") pp_depend)
-      dependencies
+      (project_dependencies c)
 
   let minimal config ppf = Fmt.pf ppf "(lang dune %s)" config.versions.dune
 end
@@ -203,6 +203,9 @@ let opam config ppf =
     Fmt.pf ppf "git+https://github.com/%s/%s.git" config.github_organisation
       config.name
   in
+  let pp_depend ppf dep =
+    Fmt.pf ppf "%S%a" dep.dep_name Fmt.(option (fmt " {%s}")) dep.dep_filter
+  in
   Fmt.pf ppf
     {|opam-version: "%s"
 maintainer:   "%s"
@@ -221,14 +224,14 @@ build: [
 depends: [
   "ocaml"   {>= "%s"}
   "dune"    {build & >= "%s"}
-  "fmt"
-  "logs"
-  "alcotest" {with-test}
+  @[<v 2>%a@]
 ]
 synopsis: "%s"|}
     config.versions.opam config.maintainer_fullname config.maintainer_fullname
     Config.pp_license config.license pp_homepage config pp_bugreports config
     pp_devrepo config config.versions.ocaml config.versions.dune
+    Fmt.(list ~sep:cut pp_depend)
+    (project_dependencies config)
     config.project_synopsis
 
 let test_main_ml config ppf =
