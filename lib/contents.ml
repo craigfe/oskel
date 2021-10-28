@@ -3,100 +3,132 @@ open Utils
 
 type file_printer = Config.t -> Format.formatter -> unit
 
+let sexp_file_printer sexps ppf = Sexp_contents.pps ppf sexps
+
+let dep_alcotest = { dep_name = "alcotest"; dep_filter = Some "with-test" }
+
+let project_dependencies config =
+  config.dependencies |> List.append [ dep_alcotest ] |> List.sort_uniq compare
+
 module Dune_project = struct
-  let package c ppf =
-    let dependencies =
-      c.dependencies
-      |> List.append [ "alcotest" ]
-      |> List.sort_uniq String.compare
+  let package c =
+    let open Sexp_contents in
+    let author_contact =
+      quoted (Fmt.str "%s <%s>" c.maintainer_fullname c.maintainer_email)
     in
-    Fmt.pf ppf {|(lang dune %s)
-(name %s)
-(implicit_transitive_deps false)
-
-|}
-      c.versions.dune c.name;
-    Fmt.pf ppf
-      {|(generate_opam_files true)
-(source (github %s/%s))
-(maintainers "%s <%s>")
-(authors "%s <%s>")
-
-|}
-      c.github_organisation c.name c.maintainer_fullname c.maintainer_email
-      c.maintainer_fullname c.maintainer_email;
-    Fmt.pf ppf
-      {|(package
- (name %s)
- (synopsis "%s")
- (description "\
-%s
-")
- (documentation https://%s.github.io/%s/)
- (depends %a))|}
-      c.name c.project_synopsis c.project_synopsis c.github_organisation c.name
-      Fmt.(list ~sep:(const string " ") string)
-      dependencies
+    let depend dep =
+      let name = atom dep.dep_name in
+      match dep.dep_filter with
+      | Some filter -> list [ name; atom (Fmt.str ":%s" filter) ]
+      | None -> name
+    in
+    sexp_file_printer
+      [
+        atoms [ "lang"; "dune"; c.versions.dune ];
+        atoms [ "name"; c.name ];
+        atoms [ "implicit_transitive_deps"; "false" ];
+        atoms [ "generate_opam_files"; "true" ];
+        field "source"
+          [ field "github" [ atom (Fmt.str "%s/%s" c.github_organisation c.name) ] ];
+        field "maintainers" [ author_contact ];
+        field "authors" [ author_contact ];
+        field "package"
+          [
+            field "name" [ atom c.name ];
+            field "synopsis" [ quoted c.project_synopsis ];
+            field "description" [ quoted c.project_synopsis ];
+            field "documentation"
+              [ quoted (Fmt.str "https://%s.github.io/%s/" c.github_organisation c.name) ];
+            field "depends" (List.map depend c.dependencies);
+          ];
+      ]
 
   let minimal config ppf = Fmt.pf ppf "(lang dune %s)" config.versions.dune
 end
 
 module Dune = struct
-  let library { name; _ } ppf =
+  open Sexp_contents
+
+  let field_libraries = function
+    | [] -> []
+    | _ :: _ as deps -> [ field "libraries" (List.map atom deps) ]
+
+  let library { name; _ } =
     let file = Utils_naming.file_of_project name in
-    Fmt.pf ppf {|(library
- (name %s)
- (public_name %s)
- (libraries logs))|} file
-      name
+    sexp_file_printer
+      [
+        field "library"
+          ( [ field "name" [ atom file ]; field "public_name" [ atom name ] ]
+          @ field_libraries [ "logs" ] );
+      ]
 
-  let pp_libraries ppf deps =
-    match deps with
-    | [] -> ()
-    | _ :: _ ->
-        let open Fmt in
-        pf ppf "@,(libraries %a)" (list ~sep:(const string " ") string) deps
-
-  let executable ~name ?(libraries = []) ppf =
+  let executable ~name ?(libraries = []) =
     let file = Utils_naming.file_of_project name in
-    Fmt.pf ppf "@[<v 1>(executable@,(name %s)%a)@]" file pp_libraries libraries
+    sexp_file_printer
+      [
+        field "executable"
+          ([ field "name" [ atom file ] ] @ field_libraries libraries);
+      ]
 
-  let install ~exe_name ~bin_name ppf =
-    Fmt.pf ppf
-      "@[<v 1>(install@,(section bin)@,@[<v 1>(files@,(%s.exe as %s))@])@]"
-      exe_name bin_name
+  let install ~exe_name ~bin_name =
+    sexp_file_printer
+      [
+        field "install"
+          [
+            field "section" [ atom "bin" ];
+            field "files"
+              [ list [ atom (Fmt.str "%s.exe" exe_name); atom "as"; atom bin_name ] ];
+          ];
+      ]
 
-  let test config ppf =
+  let test config =
     let dependencies =
       [ config.name; "alcotest"; "logs"; "logs.fmt" ]
       |> List.sort String.compare
     in
-    Fmt.pf ppf "@[<v 1>(test@,(name main)%a)@]" pp_libraries dependencies
+    sexp_file_printer
+      [
+        field "test"
+          ([ field "name" [ atom "main" ] ] @ field_libraries dependencies);
+      ]
 
-  let ppx_deriver { name = n; _ } ppf =
-    Fmt.pf ppf
-      {|(library
- (public_name %s)
- (kind ppx_deriver)
- (libraries %s_lib ppxlib))|}
-      n n
+  let ppx_deriver { name = n; _ } =
+    sexp_file_printer
+      [
+        field "library"
+          ( [
+              field "public_name" [ atom n ]; field "kind" [ atom "ppx_deriver" ];
+            ]
+          @ field_libraries [ n ^ "_lib"; "ppxlib" ] );
+      ]
 
   let ppx_deriver_lib _ _ppf = ()
 
-  let generate_help { name = n; _ } ppf =
-    Fmt.pf ppf
-      {|(rule
- (targets %s-help.txt.gen)
- (action
-  (with-stdout-to
-   %%{targets}
-   (run %s --help=plain))))
-
-(rule
- (alias runtest)
- (action
-  (diff %s-help.txt %s-help.txt.gen)))|}
-      n n n n
+  let generate_help { name = n; _ } =
+    sexp_file_printer
+      [
+        field "rule"
+          [
+            field "targets" [ atom (Fmt.str "%s-help.txt.gen" n) ];
+            field "action"
+              [
+                field "with-stdout-to"
+                  [
+                    atom "%{targets}";
+                    field "run" [ atom n; atom "--help=plain" ];
+                  ];
+              ];
+          ];
+        field "rule"
+          [
+            field "alias" [ atom "runtest" ];
+            field "action"
+              [
+                field "diff"
+                  [ atom (Fmt.str "%s-help.txt" n); atom (Fmt.str "%s-help.txt.gen" n) ];
+              ];
+          ];
+      ]
 end
 
 let hello_world_bin _config ppf =
@@ -198,6 +230,9 @@ let opam config ppf =
     Fmt.pf ppf "git+https://github.com/%s/%s.git" config.github_organisation
       config.name
   in
+  let pp_depend ppf dep =
+    Fmt.pf ppf "%S%a" dep.dep_name Fmt.(option (fmt " {%s}")) dep.dep_filter
+  in
   Fmt.pf ppf
     {|opam-version: "%s"
 maintainer:   "%s"
@@ -216,14 +251,14 @@ build: [
 depends: [
   "ocaml"   {>= "%s"}
   "dune"    {build & >= "%s"}
-  "fmt"
-  "logs"
-  "alcotest" {with-test}
+  @[<v 2>%a@]
 ]
 synopsis: "%s"|}
     config.versions.opam config.maintainer_fullname config.maintainer_fullname
     Config.pp_license config.license pp_homepage config pp_bugreports config
     pp_devrepo config config.versions.ocaml config.versions.dune
+    Fmt.(list ~sep:cut pp_depend)
+    (project_dependencies config)
     config.project_synopsis
 
 let test_main_ml config ppf =

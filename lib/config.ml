@@ -7,6 +7,11 @@ type versions = {
   ocamlformat : string;
 }
 
+type dependency = {
+  dep_name : string;
+  dep_filter : string option;  (** For example, ["with-test"]. *)
+}
+
 type t = {
   name : string;
   project_synopsis : string;
@@ -15,7 +20,7 @@ type t = {
   github_organisation : string;
   initial_version : string;
   license : License.t;
-  dependencies : string list;
+  dependencies : dependency list;
   versions : versions;
   ocamlformat_options : (string * string) list;
   current_year : int;

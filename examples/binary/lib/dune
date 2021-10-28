@@ -1,3 +1,4 @@
 (library
  (name binary)
+ (public_name binary)
  (libraries logs))
