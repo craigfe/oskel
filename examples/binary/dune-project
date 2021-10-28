@@ -14,4 +14,4 @@
 Binary that depends on a tested library
 ")
  (documentation https://JoeBloggs.github.io/binary/)
- (depends alcotest fmt logs))
+ (depends (alcotest :with-test) fmt logs))

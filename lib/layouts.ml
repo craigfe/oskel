@@ -152,7 +152,7 @@ let binary = { layout = binary; post_init = [] }
 let executable (config : Config.t) =
   let name = config.name in
   let toplevel_file = Utils.Utils_naming.file_of_project name in
-  let libraries = config.dependencies in
+  let libraries = List.map (fun d -> d.Config.dep_name) config.dependencies in
   let open Contents in
   Folder
     ( config.name,

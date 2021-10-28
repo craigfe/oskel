@@ -14,4 +14,4 @@
 Single package in `src`
 ")
  (documentation https://JoeBloggs.github.io/library/)
- (depends alcotest fmt logs))
+ (depends (alcotest :with-test) fmt logs))

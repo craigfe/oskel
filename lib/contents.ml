@@ -3,12 +3,17 @@ open Utils
 
 type file_printer = Config.t -> Format.formatter -> unit
 
+let dep_alcotest = { dep_name = "alcotest"; dep_filter = Some "with-test" }
+
 module Dune_project = struct
+  let pp_depend ppf dep =
+    match dep.dep_filter with
+    | None -> Fmt.string ppf dep.dep_name
+    | Some filter -> Fmt.pf ppf "(%s :%s)" dep.dep_name filter
+
   let package c ppf =
     let dependencies =
-      c.dependencies
-      |> List.append [ "alcotest" ]
-      |> List.sort_uniq String.compare
+      c.dependencies |> List.append [ dep_alcotest ] |> List.sort_uniq compare
     in
     Fmt.pf ppf {|(lang dune %s)
 (name %s)
@@ -35,7 +40,7 @@ module Dune_project = struct
  (documentation https://%s.github.io/%s/)
  (depends %a))|}
       c.name c.project_synopsis c.project_synopsis c.github_organisation c.name
-      Fmt.(list ~sep:(const string " ") string)
+      Fmt.(list ~sep:(const string " ") pp_depend)
       dependencies
 
   let minimal config ppf = Fmt.pf ppf "(lang dune %s)" config.versions.dune

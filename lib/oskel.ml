@@ -180,6 +180,11 @@ let run ~project_kind ?name ?project_synopsis ~maintainer_fullname
              if !progress_bar_active then Printf.printf "\r\n%!";
              return ())
     and+ c = config >* progress in
+    let dependencies =
+      List.map
+        (fun dep_name -> { Config.dep_name; dep_filter = None })
+        dependencies
+    in
     let versions =
       versions
       |> function
